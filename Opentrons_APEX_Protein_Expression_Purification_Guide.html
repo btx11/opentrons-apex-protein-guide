@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opentrons自動分注装置によるタンパク質自動発現・精製技術詳細ガイド (APEX)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #dbeafe;
+      --accent: #0d9488;
+      --accent-light: #ccfbf1;
+      --secondary: #6366f1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --dark: #0f172a;
+      --gray-800: #1e293b;
+      --gray-700: #334155;
+      --gray-600: #475569;
+      --gray-500: #64748b;
+      --gray-300: #cbd5e1;
+      --gray-200: #e2e8f0;
+      --gray-100: #f1f5f9;
+      --gray-50: #f8fafc;
+      --white: #ffffff;
+      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #f1f5f9;
+      color: var(--gray-800);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Container Layout */
+    .app-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar {
+      width: 290px;
+      background-color: var(--dark);
+      color: #94a3b8;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid #1e293b;
+    }
+
+    .sidebar-header {
+      padding: 24px 20px;
+      border-bottom: 1px solid #1e293b;
+    }
+
+    .sidebar-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: rgba(37, 99, 235, 0.2);
+      color: #60a5fa;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    .sidebar-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #f8fafc;
+      letter-spacing: -0.01em;
+    }
+
+    .sidebar-subtitle {
+      font-size: 0.8rem;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    .sidebar-nav {
+      padding: 16px 12px;
+      flex-grow: 1;
+    }
+
+    .nav-group-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #475569;
+      padding: 12px 12px 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: var(--radius-sm);
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      transition: all 0.15s ease;
+      margin-bottom: 2px;
+    }
+
+    .nav-item:hover {
+      background-color: rgba(255, 255, 255, 0.06);
+      color: #f8fafc;
+    }
+
+    .nav-item.active {
+      background-color: var(--primary);
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .nav-icon {
+      font-size: 1rem;
+      opacity: 0.8;
+    }
+
+    /* Main Content Area */
+    .main-content {
+      flex-grow: 1;
+      max-width: 1240px;
+      padding: 40px 48px;
+      overflow-x: hidden;
+    }
+
+    /* Hero Banner */
+    .hero-banner {
+      background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+      color: #ffffff;
+      border-radius: var(--radius-lg);
+      padding: 36px 40px;
+      margin-bottom: 36px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-banner::after {
+      content: "";
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(circle, rgba(13, 148, 136, 0.25) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .hero-tags {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .hero-tag {
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(4px);
+    }
+
+    .hero-tag.highlight {
+      background: #0d9488;
+      color: white;
+    }
+
+    .hero-title {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .hero-desc {
+      font-size: 1.05rem;
+      color: #cbd5e1;
+      max-width: 880px;
+      line-height: 1.6;
+    }
+
+    .meta-box {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    .meta-item strong {
+      color: #f1f5f9;
+    }
+
+    /* Section Styles */
+    .section-card {
+      background-color: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      margin-bottom: 32px;
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--gray-200);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid var(--gray-100);
+    }
+
+    .section-number {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      background: var(--primary-light);
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.95rem;
+      border-radius: var(--radius-sm);
+    }
+
+    .section-title {
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--dark);
+      letter-spacing: -0.01em;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 960px) {
+      .app-container { flex-direction: column; }
+      .sidebar { width: 100%; height: auto; position: static; }
+      .main-content { padding: 20px; }
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    }
+
+    /* Cards */
+    .info-card {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      transition: all 0.2s ease;
+    }
+
+    .info-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .card-icon {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      display: inline-block;
+    }
+
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--gray-800);
+      margin-bottom: 8px;
+    }
+
+    .card-desc {
+      font-size: 0.88rem;
+      color: var(--gray-600);
+      line-height: 1.55;
+    }
+
+    /* Workflow Pipeline Graphic */
+    .pipeline-wrapper {
+      background: linear-gradient(to right, #f8fafc, #f1f5f9);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+
+    .pipeline-steps {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .step-item {
+      flex: 1;
+      min-width: 140px;
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      text-align: center;
+      position: relative;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .step-item.highlight {
+      border: 2px solid var(--primary);
+      background: #f0f7ff;
+    }
+
+    .step-num {
+      display: inline-block;
+      width: 26px;
+      height: 26px;
+      background: var(--gray-100);
+      color: var(--gray-700);
+      border-radius: 50%;
+      font-weight: 700;
+      font-size: 0.8rem;
+      line-height: 26px;
+      margin-bottom: 8px;
+    }
+
+    .step-item.highlight .step-num {
+      background: var(--primary);
+      color: white;
+    }
+
+    .step-name {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 4px;
+    }
+
+    .step-sub {
+      font-size: 0.76rem;
+      color: var(--gray-500);
+    }
+
+    /* Tables */
+    .table-container {
+      overflow-x: auto;
+      margin: 16px 0;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--gray-200);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.88rem;
+    }
+
+    th {
+      background: var(--gray-100);
+      color: var(--gray-700);
+      font-weight: 600;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--gray-200);
+      white-space: nowrap;
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--gray-200);
+      color: var(--gray-700);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background-color: #f8fafc;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-primary { background: var(--primary-light); color: var(--primary); }
+    .badge-success { background: #d1fae5; color: #065f46; }
+    .badge-warning { background: #fef3c7; color: #92400e; }
+    .badge-danger { background: #fee2e2; color: #991b1b; }
+    .badge-purple { background: #ede9fe; color: #5b21b6; }
+
+    /* Deck Layout Visualization */
+    .deck-container {
+      background: #1e293b;
+      padding: 24px;
+      border-radius: var(--radius-md);
+      color: white;
+      margin: 20px 0;
+    }
+
+    .deck-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr) 0.8fr;
+      grid-template-rows: repeat(4, 100px);
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .deck-slot {
+      background: #334155;
+      border: 2px dashed #475569;
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .deck-slot:hover {
+      border-color: #60a5fa;
+      background: #3b4d66;
+    }
+
+    .deck-slot.occupied {
+      background: #1e3a5f;
+      border: 2px solid #38bdf8;
+    }
+
+    .deck-slot.thermocycler {
+      grid-column: 1 / 2;
+      grid-row: 3 / 5;
+      background: #3b204e;
+      border: 2px solid #c084fc;
+    }
+
+    .deck-slot.trash {
+      grid-column: 4 / 5;
+      grid-row: 4 / 5;
+      background: #451a1a;
+      border: 2px solid #f87171;
+    }
+
+    .slot-id {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+
+    .slot-content {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #f8fafc;
+      line-height: 1.3;
+    }
+
+    .slot-type {
+      font-size: 0.7rem;
+      color: #38bdf8;
+    }
+
+    /* Tabs Component */
+    .tabs-wrapper {
+      margin: 20px 0;
+    }
+
+    .tab-buttons {
+      display: flex;
+      border-bottom: 2px solid var(--gray-200);
+      gap: 4px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      padding: 10px 18px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--gray-500);
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      color: var(--primary);
+    }
+
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+      background-color: var(--primary-light);
+      border-top-left-radius: var(--radius-sm);
+      border-top-right-radius: var(--radius-sm);
+    }
+
+    .tab-pane {
+      display: none;
+      padding: 24px;
+      border: 1px solid var(--gray-200);
+      border-top: none;
+      border-bottom-left-radius: var(--radius-md);
+      border-bottom-right-radius: var(--radius-md);
+      background: white;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    /* Protocol detail cards */
+    .protocol-step {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .step-marker {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .step-body {
+      flex: 1;
+    }
+
+    .step-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 4px;
+    }
+
+    .step-text {
+      font-size: 0.88rem;
+      color: var(--gray-600);
+      line-height: 1.6;
+    }
+
+    .param-box {
+      background: var(--gray-50);
+      border-left: 3px solid var(--primary);
+      padding: 10px 14px;
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin-top: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      color: var(--gray-700);
+    }
+
+    /* Code Block */
+    .code-container {
+      background: #0f172a;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin: 16px 0;
+    }
+
+    .code-header {
+      background: #1e293b;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: #94a3b8;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    pre code {
+      display: block;
+      padding: 16px;
+      color: #e2e8f0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.6;
+      overflow-x: auto;
+    }
+
+    /* Math Formula Box */
+    .formula-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: var(--radius-md);
+      padding: 18px 24px;
+      margin: 16px 0;
+      text-align: center;
+    }
+
+    .formula-title {
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--gray-500);
+      margin-bottom: 8px;
+    }
+
+    .formula-content {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #1e3a8a;
+    }
+
+    /* Callout Boxes */
+    .callout {
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      margin: 18px 0;
+      display: flex;
+      gap: 14px;
+      font-size: 0.88rem;
+    }
+
+    .callout-info {
+      background-color: #eff6ff;
+      border: 1px solid #bfdbfe;
+      color: #1e40af;
+    }
+
+    .callout-success {
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+    }
+
+    .callout-warning {
+      background-color: #fffbeb;
+      border: 1px solid #fde68a;
+      color: #92400e;
+    }
+
+    .callout-icon {
+      font-size: 1.25rem;
+      flex-shrink: 0;
+    }
+
+    /* Purification Flow Box */
+    .purif-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .purif-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .purif-badge {
+      padding: 6px 12px;
+      background: var(--accent);
+      color: white;
+      font-weight: 700;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      white-space: nowrap;
+    }
+
+    /* Comparison Metrics */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .metric-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .metric-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .metric-value.green {
+      color: var(--success);
+    }
+
+    .metric-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: 2px;
+    }
+
+    .metric-sub {
+      font-size: 0.72rem;
+      color: var(--gray-500);
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--gray-200);
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--gray-500);
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-badge">Technology Review</div>
+      <div class="sidebar-title">Opentrons × APEX</div>
+      <div class="sidebar-subtitle">タンパク質自動発現・精製ガイド</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-group-title">概要・基本構造</div>
+      <a href="#overview" class="nav-item active"><span class="nav-icon">📌</span> 論文概要 & APEXの革新性</a>
+      <a href="#architecture" class="nav-item"><span class="nav-icon">⚙️</span> システムアーキテクチャ</a>
+      <a href="#hardware" class="nav-item"><span class="nav-icon">🧪</span> ハードウェア & デッキ構成</a>
+      
+      <div class="nav-group-title">自動化プロトコル詳細</div>
+      <a href="#protocols" class="nav-item"><span class="nav-icon">📋</span> 全7プロトコルの技術詳細</a>
+      <a href="#sampling-tech" class="nav-item"><span class="nav-icon">🎯</span> 寒天計算 & コロニーサンプリング</a>
+      <a href="#purification" class="nav-item"><span class="nav-icon">⚗️</span> 菌体破砕・可溶化・精製展開</a>
+
+      <div class="nav-group-title">データ・実装ノウハウ</div>
+      <a href="#results" class="nav-item"><span class="nav-icon">📊</span> 実証実験データ & 時間削減効果</a>
+      <a href="#tips" class="nav-item"><span class="nav-icon">💡</span> 導入Tips & トラブルシューティング</a>
+      <a href="#resources" class="nav-item"><span class="nav-icon">🔗</span> 文献情報 & オープンリソース</a>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    
+    <!-- Hero Banner -->
+    <div class="hero-banner" id="overview">
+      <div class="hero-tags">
+        <span class="hero-tag highlight">ACS Synth Biol / bioRxiv 2025</span>
+        <span class="hero-tag">Opentrons OT-2</span>
+        <span class="hero-tag">96-Well End-to-End</span>
+        <span class="hero-tag">No-Code / Nextflow</span>
+      </div>
+      <h1 class="hero-title">APEX: 自動分注機Opentronsを活用した<br>大腸菌組換えタンパク質の発現・精製自動化システム</h1>
+      <p class="hero-desc">
+        エジンバラ大学のMartyna Kasprzyk、Michael A. Herrera、Giovanni Stracquadanioらによって開発された<strong>「APEX (Automated Protein EXpression)」</strong>は、オープンソース自動分注機Opentrons OT-2を用いて、ヒートショック形質転換から寒天播種、コロニーピッキング、発現誘導、菌体破砕（Lysis）、SDS-PAGE調製・下流精製準備までの全工程を完全自動化した画期的なパイプラインです。
+      </p>
+      <div class="meta-box">
+        <div class="meta-item">原題: <strong>APEX: Automated Protein EXpression in Escherichia coli</strong></div>
+        <div class="meta-item">対象生物: <strong>大腸菌 (BL21(DE3), DH5α等)</strong></div>
+        <div class="meta-item">コード: <strong>AGPL-3.0 License (GitHub公開)</strong></div>
+      </div>
+    </div>
+
+    <!-- Metrics Highlights -->
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="metric-value green">98% 減</div>
+        <div class="metric-label">形質転換の手作業時間</div>
+        <div class="metric-sub">25.8分 → わずか 0.5分 に短縮</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">2.7〜17.7 kb</div>
+        <div class="metric-label">対応プラスミドサイズ</div>
+        <div class="metric-sub">多様な耐性マーカー・ベクターで実証</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value">27〜222 kDa</div>
+        <div class="metric-label">発現確認タンパク質</div>
+        <div class="metric-sub">巨大ポリケチド合成酵素まで可溶性発現</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-value green">96 サンプル</div>
+        <div class="metric-label">同時バッチ処理スループット</div>
+        <div class="metric-sub">ディープウェルによるマイクロスケール培養</div>
+      </div>
+    </div>
+
+    <!-- Section 1: Overview & Challenges -->
+    <section class="section-card">
+      <div class="section-header">
+        <div class="section-number">1</div>
+        <h2 class="section-title">従来の課題とAPEXがもたらしたブレークスルー</h2>
+      </div>
+
+      <div class="grid-2">
+        <div class="info-card">
+          <div class="card-icon">⚠️</div>
+          <h3 class="card-title">従来のタンパク質発現・スクリーニングの課題</h3>
+          <ul style="padding-left: 20px; font-size: 0.88rem; color: var(--gray-600); line-height: 1.7;">
+            <li><strong>極めて高い労働負荷と手作業時間:</strong> 96サンプルの形質転換、プレートへの滴下、コロニーピッキング、植菌、誘導、サンプリングを人手で行うと数時間以上の拘束が発生。</li>
+            <li><strong>操作者の技術格差と再現性の欠如:</strong> 手動ピペッティングのバラつきや播種むら、採取量の不均一性がスクリーニング結果に直接影響。</li>
+            <li><strong>高価格な専用自動化装置の参入障壁:</strong> QPix等の画像認識機能付き自動コロニーピッカーや大型リキッドハンドラーは数千万円規模で、一般的なアカデミアや中小ラボには導入困難。</li>
+            <li><strong>コード記述のハードル:</strong> 既存の自動化スクリプトは散在しており、実験パラメータを変えるたびにPythonコードの書き換えが必要だった。</li>
+          </ul>
+        </div>
+
+        <div class="info-card">
+          <div class="card-icon">🚀</div>
+          <h3 class="card-title">APEXパイプラインの革新的ソリューション</h3>
+          <ul style="padding-left: 20px; font-size: 0.88rem; color: var(--gray-600); line-height: 1.7;">
+            <li><strong>手頃な汎用分注機（Opentrons OT-2）での完全統合:</strong> 数百万円規模のOT-2とオンデッキサーモサイクラーのみで、全工程をカバー。</li>
+            <li><strong>画像認識不要の画期的サンプリング技術:</strong> 寒天の高さを数学的に算出し、ピペットチップの「Single Pierce」または「Spiral軌道」で確実に菌体を採取。</li>
+            <li><strong>ノーコード設計（JSON + CSV）:</strong> プログラミング不要。JSONで機器設定、CSVで実験データを指定するだけで、Nextflowが完全自動でプロトコルを生成・検証。</li>
+            <li><strong>菌体破砕〜SDS調製〜精製原料抽出まで直結:</strong> BugBuster等による細胞溶解と遠心分離を連携させ、可溶性画分の抽出・熱変性を自動化。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: System Architecture -->
+    <section class="section-card" id="architecture">
+      <div class="section-header">
+        <div class="section-number">2</div>
+        <h2 class="section-title">システムアーキテクチャ & ワークフロー</h2>
+      </div>
+
+      <p style="font-size: 0.92rem; color: var(--gray-600); margin-bottom: 20px;">
+        APEXは、実験設計からロボット実行までを4つのステージでシームレスに繋ぐパイプライン構造を採用しています。すべての依存環境はDockerコンテナ化され、Nextflowワークフローマネージャーによって再現性が担保されています。
+      </p>
+
+      <div class="pipeline-wrapper">
+        <div class="pipeline-steps">
+          <div class="step-item highlight">
+            <span class="step-num">Step 1</span>
+            <div class="step-name">実験パラメータ入力</div>
+            <div class="step-sub">JSON (機器構成) + CSV (液量・ウェル)</div>
+          </div>
+          <div class="step-item">
+            <span class="step-num">Step 2</span>
+            <div class="step-name">Nextflow パイプライン</div>
+            <div class="step-sub">プロトコル自動コンパイル・シミュレーション</div>
+          </div>
+          <div class="step-item">
+            <span class="step-num">Step 3</span>
+            <div class="step-name">可視化 & 指示書出力</div>
+            <div class="step-sub">Rによるデッキ配置図 & PDF手順書</div>
+          </div>
+          <div class="step-item highlight">
+            <span class="step-num">Step 4</span>
+            <div class="step-name">OT-2 ロボット実行</div>
+            <div class="step-sub">Opentrons Appからアップロード・自動分注</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 10px; color: var(--dark);">📄 2つの設定ファイルによるノーコード制御</h4>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>ファイル形式</th>
+                  <th>定義内容</th>
+                  <th>設定項目例</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>JSON</strong><br><small>(config.json)</small></td>
+                  <td>ハードウェア、デッキ配置、モジュール、物理パラメータ</td>
+                  <td>ピペット型番、マウント位置、チップラック位置、寒天密度、吸引速度、クリアランス</td>
+                </tr>
+                <tr>
+                  <td><strong>CSV</strong><br><small>(data.csv)</small></td>
+                  <td>ウェル単位の実験マッピング・分注指示</td>
+                  <td>サンプルID、移動元ウェル (source_well)、移動先 (destination_well)、分注量 (µL)、誘導剤濃度</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div>
+          <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 10px; color: var(--dark);">💻 実行コマンド & 自動生成成果物</h4>
+          <div class="code-container">
+            <div class="code-header">
+              <span>Nextflow Pipeline Execution</span>
+              <span>BASH</span>
+            </div>
+            <pre><code># APEXパイプラインのダウンロード
+nextflow pull stracquadaniolab/apex-nf
+
+# パイプラインの実行（プロトコル自動生成 & 検証）
+nextflow run stracquadaniolab/apex-nf \
+  --config protocol-1-config.json \
+  --data protocol-1-data.csv
+
+# 出力成果物:
+# 1. protocol-1.py (OT-2実行用Pythonスクリプト)
+# 2. simulation.log (エラー事前検知ログ)
+# 3. deck_layout.png (R言語による試薬配置プレビュー図)
+# 4. run_manual.pdf (作業者用ステップ別セットアップガイド)</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 3: Hardware & Deck Setup -->
+    <section class="section-card" id="hardware">
+      <div class="section-header">
+        <div class="section-number">3</div>
+        <h2 class="section-title">ハードウェア構成とデッキレイアウト</h2>
+      </div>
+
+      <p style="font-size: 0.92rem; color: var(--gray-600); margin-bottom: 20px;">
+        APEXは高価なカスタムモジュールを必要とせず、標準的なOpentrons OT-2のハードウェアとオンデッキサーモサイクラー（Thermocycler Module GEN1）で動作します。
+      </p>
+
+      <div class="grid-3" style="margin-bottom: 24px;">
+        <div class="info-card">
+          <div class="card-icon">🤖</div>
+          <div class="card-title">自動分注ロボット本体</div>
+          <div class="card-desc">
+            <strong>Opentrons OT-2</strong><br>
+            高精度3軸ロボットアーム、オープンAPI対応。2つのピペットマウントを搭載。
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="card-icon">🌡️</div>
+          <div class="card-title">オンデッキ温度制御</div>
+          <div class="card-desc">
+            <strong>Thermocycler Module GEN1</strong><br>
+            4℃〜99℃制御、自動開閉リッド（最高105℃）。スロット7, 8, 10, 11を占有。形質転換と熱変性を担当。
+          </div>
+        </div>
+        <div class="info-card">
+          <div class="card-icon">💉</div>
+          <div class="card-title">ピペット構成</div>
+          <div class="card-desc">
+            <strong>P20 Multi-channel (1〜20 µL)</strong>: DNA・誘導剤・寒天ピッキング用<br>
+            <strong>P300 Multi-channel (20〜300 µL)</strong>: 培地分注・混合・破砕液回収用
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Deck Map Diagram -->
+      <h4 style="font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 8px;">
+        🗺️ Opentrons OT-2 デッキ配置例（Protocol 1: ヒートショック形質転換時）
+      </h4>
+      <div class="deck-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #475569; padding-bottom: 8px;">
+          <span style="font-size: 0.85rem; font-weight: 600; color: #cbd5e1;">OT-2 DECK MAP (11 Slots + Thermocycler + Trash)</span>
+          <span style="font-size: 0.75rem; color: #94a3b8;">Thermocycler occupies slots 7, 8, 10, 11</span>
+        </div>
+
+        <div class="deck-grid">
+          <!-- Slot 10, 11, Thermocycler Lid Left -->
+          <div class="deck-slot thermocycler">
+            <span class="slot-id">SLOT 7, 8, 10, 11 (Thermocycler)</span>
+            <div class="slot-content">Transformation Plate (PCR 96)</div>
+            <div class="slot-type">4℃冷却 → 42℃ヒートショック → 37℃リカバリー</div>
+          </div>
+
+          <!-- Slot 9 -->
+          <div class="deck-slot occupied">
+            <span class="slot-id">SLOT 9</span>
+            <div class="slot-content">P300 Tiprack</div>
+            <div class="slot-type">300 µL フィルターチップ</div>
+          </div>
+
+          <!-- Slot 12: Trash -->
+          <div class="deck-slot trash">
+            <span class="slot-id">SLOT 12 (Fixed)</span>
+            <div class="slot-content">Fixed Trash Container</div>
+            <div class="slot-type">使用済みチップ廃棄</div>
+          </div>
+
+          <!-- Slot 4, 5, 6 -->
+          <div class="deck-slot occupied">
+            <span class="slot-id">SLOT 4</span>
+            <div class="slot-content">Cells Plate</div>
+            <div class="slot-type">コンピテントセル (4℃保持)</div>
+          </div>
+          <div class="deck-slot occupied">
+            <span class="slot-id">SLOT 5</span>
+            <div class="slot-content">DNA Plate</div>
+            <div class="slot-type">プラスミドDNA (96 PCR Plate)</div>
+          </div>
+          <div class="deck-slot occupied">
+            <span class="slot-id">SLOT 6</span>
+            <div class="slot-content">P20 Tiprack</div>
+            <div class="slot-type">20 µL フィルターチップ</div>
+          </div>
+
+          <!-- Slot 1, 2, 3 -->
+          <div class="deck-slot occupied">
+            <span class="slot-id">SLOT 1</span>
+            <div class="slot-content">Agar Plate (Nunc OmniTray)</div>
+            <div class="slot-type">Protocol 2/3用 寒天プレート</div>
+          </div>
+          <div class="deck-slot occupied">
+            <span class="slot-id">SLOT 2</span>
+            <div class="slot-content">P20 Tiprack 2</div>
+            <div class="slot-type">20 µL チップ予備ラック</div>
+          </div>
+          <div class="deck-slot occupied">
+            <span class="slot-id">SLOT 3</span>
+            <div class="slot-content">12-Ch Reservoir (22 mL)</div>
+            <div class="slot-type">SOC培地 / 新鮮LB培地</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 4: All Protocols -->
+    <section class="section-card" id="protocols">
+      <div class="section-header">
+        <div class="section-number">4</div>
+        <h2 class="section-title">全7つの自動化プロトコル完全解説</h2>
+      </div>
+
+      <p style="font-size: 0.92rem; color: var(--gray-600); margin-bottom: 20px;">
+        APEXは、タンパク質発現・精製の上流から下流までの全実験フローを7つの独立・連携可能なモジュールプロトコルとして定義しています。
+      </p>
+
+      <div class="tabs-wrapper">
+        <div class="tab-buttons">
+          <button class="tab-btn active" onclick="switchTab(event, 'tab-p1')">P1: 形質転換</button>
+          <button class="tab-btn" onclick="switchTab(event, 'tab-p2')">P2: 寒天播種</button>
+          <button class="tab-btn" onclick="switchTab(event, 'tab-p3')">P3: コロニー採取</button>
+          <button class="tab-btn" onclick="switchTab(event, 'tab-p4')">P4: 発現誘導</button>
+          <button class="tab-btn" onclick="switchTab(event, 'tab-p5')">P5: コロニーPCR</button>
+          <button class="tab-btn" onclick="switchTab(event, 'tab-p6')">P6: 菌体破砕・SDS</button>
+          <button class="tab-btn" onclick="switchTab(event, 'tab-p7')">P7: OD600測定</button>
+        </div>
+
+        <!-- Protocol 1 -->
+        <div id="tab-p1" class="tab-pane active">
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; color: var(--primary);">
+            Protocol 1: Heat Shock Transformation (ヒートショック形質転換)
+          </h3>
+          <p style="font-size: 0.9rem; color: var(--gray-700); margin-bottom: 16px;">
+            オンデッキのサーモサイクラーを活用し、コンピテントセルへのDNA導入から42℃熱処理、SOC培地によるリカバリー培養までを完全無人化します。
+          </p>
+
+          <div class="protocol-step">
+            <div class="step-marker">1</div>
+            <div class="step-body">
+              <div class="step-title">コンピテントセルの分注 (Cells Aliquot)</div>
+              <div class="step-text">
+                冷却されたセルプレート（スロット4）から、サーモサイクラー上の96ウェルPCRプレート（4℃で予冷）へ各ウェル10 µLを分注。APEXは複数ウェル分の容積を一度に吸引し、最小分注量相当の余剰液（Disposal volume）を吸引することで分注精度を最大化します。
+              </div>
+              <div class="param-box">cells_volume: 10 µL | pre_shock_incubation_temp: 4 ℃</div>
+            </div>
+          </div>
+
+          <div class="protocol-step">
+            <div class="step-marker">2</div>
+            <div class="step-body">
+              <div class="step-title">プラスミドDNAの添加と混合 (DNA Transfer)</div>
+              <div class="step-text">
+                DNAプレート（スロット5）から各ウェルにプラスミドDNA 1 µLを添加。添加後、緩やかに1回ミキシング。ブローアウト後、ピペット先端に残存した微小液滴を回収するため、チップを再度液面まで降下させて完全に液離れさせます。
+              </div>
+              <div class="param-box">dna_volume: 1 µL | fresh tip used for each plasmid</div>
+            </div>
+          </div>
+
+          <div class="protocol-step">
+            <div class="step-marker">3</div>
+            <div class="step-body">
+              <div class="step-title">自動ヒートショック処理 (Thermocycler Automation)</div>
+              <div class="step-text">
+                サーモサイクラーの蓋が自動で密閉。4℃で30分間冷却インキュベーション後、42℃で30秒間のヒートショックを実行し、直ちに4℃で2分間急冷します。ウェル内液量に応じたブロック容積パラメータが自動設定されます。
+              </div>
+              <div class="param-box">heat_shock_temp: 42 ℃ | heat_shock_time_sec: 30 s | post_shock: 4 ℃, 2 min</div>
+            </div>
+          </div>
+
+          <div class="protocol-step">
+            <div class="step-marker">4</div>
+            <div class="step-body">
+              <div class="step-title">リカバリー培地添加 & 復帰培養 (SOC Addition & Outgrowth)</div>
+              <div class="step-text">
+                サーモサイクラーが自動開口し、リザーバーからSOC培地50 µLを各ウェルに添加して3回ピペッティング懸濁。再び蓋を閉め、37℃で60分間振盪なしで復帰インキュベート。終了後、そのままProtocol 2の播種工程へ移行できます。
+              </div>
+              <div class="param-box">media_volume: 50 µL | recovery_temp: 37 ℃ | recovery_time_min: 60 min</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Protocol 2 -->
+        <div id="tab-p2" class="tab-pane">
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; color: var(--primary);">
+            Protocol 2: Selective Plating (寒天選択培地へのスポッティング)
+          </h3>
+          <p style="font-size: 0.9rem; color: var(--gray-700); margin-bottom: 16px;">
+            大型の単一ウェルプレート（Nunc OmniTray）に注いだLB寒天培地へ、96ウェル形式で形質転換菌液を正確に滴下（スポット）します。
+          </p>
+
+          <div class="protocol-step">
+            <div class="step-marker">1</div>
+            <div class="step-body">
+              <div class="step-title">寒天高さの自動計算 (Agar Height Determination)</div>
+              <div class="step-text">
+                プレート重量と面積、寒天密度から液面高さをミリ単位以下で精密算出。ピペットチップの吐出位置を寒天表面からわずか+0.5 mm（Spotting height）に制御し、寒天を傷つけずに液滴を静置します。
+              </div>
+              <div class="param-box">spotting_height: +0.5 mm | additional_volume: 1 µL</div>
+            </div>
+          </div>
+
+          <div class="protocol-step">
+            <div class="step-marker">2</div>
+            <div class="step-body">
+              <div class="step-title">気泡・液ハネを防止するスポッティング制御</div>
+              <div class="step-text">
+                形質転換細胞を20 µLで3回懸濁後、5 µL吸引（追加で1 µL余分に吸引）。寒天表面に吐出する際、<strong>あえてブローアウト（空気吹出）を行いません</strong>。気泡や菌液の飛散を防ぎ、吐出後に5秒間の待機時間を設けて毛細管現象で寒天上に綺麗に液を転移させます。
+              </div>
+              <div class="param-box">spotting_volume: 5 µL | delay: 5 seconds after dispense</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Protocol 3 -->
+        <div id="tab-p3" class="tab-pane">
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; color: var(--primary);">
+            Protocol 3: Colony Sampling (コロニーピッキング & 植菌)
+          </h3>
+          <p style="font-size: 0.9rem; color: var(--gray-700); margin-bottom: 16px;">
+            一晩培養（37℃、12〜18時間）で形成されたコロニー群から、カメラ画像認識なしでピペットチップのみを用いて菌体を自動採取し、ディープウェルの液体培地へ植菌します。
+          </p>
+
+          <div class="protocol-step">
+            <div class="step-marker">1</div>
+            <div class="step-body">
+              <div class="step-title">サンプリング戦略の選択 (Single Pierce vs Spiral)</div>
+              <div class="step-text">
+                コロニー密度に応じて2種類の軌道を選択可能：
+                <ul style="margin: 6px 0 0 16px;">
+                  <li><strong>Single Pierce法:</strong> 高菌密度スポットの中央にチップ先端を降下させ、寒天表面を1回貫通して菌体を付着させる高速手法。</li>
+                  <li><strong>Spiral法:</strong> 低菌密度やバラつきがあるスポット用。中心から外側へ渦巻き状（半径2.5 mm、3回転など）にチップを低速移動させて菌体を広範囲から確実に採取。</li>
+                </ul>
+              </div>
+              <div class="param-box">sampling_method: "single_pierce" or "spiral" | sampling_height: 寒天表面深度</div>
+            </div>
+          </div>
+
+          <div class="protocol-step">
+            <div class="step-marker">2</div>
+            <div class="step-body">
+              <div class="step-title">ディープウェルプレートへの植菌 & 混合</div>
+              <div class="step-text">
+                採取したチップを96ディープウェルプレート（2.4 mL Deep Well Plate）のLB培地（抗生物質入り）に浸漬し、半量ピペッティング混合を2回実行して菌体を培地中に確実に分散させます。
+              </div>
+              <div class="param-box">culture_mix_number: 2 | culture_plate: USA Scientific 96 Deep Well (2.4 mL)</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Protocol 4 -->
+        <div id="tab-p4" class="tab-pane">
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; color: var(--primary);">
+            Protocol 4: Protein Expression Induction (本培養植菌 & 発現誘導)
+          </h3>
+          <p style="font-size: 0.9rem; color: var(--gray-700); margin-bottom: 16px;">
+            前培養（Seed culture）から本培養プレートへ微量植菌し、対数増殖期（Mid-log phase）到達後にIPTGやL-アラビノースを自動添加してタンパク質発現を誘導します。
+          </p>
+
+          <div class="protocol-step">
+            <div class="step-marker">1</div>
+            <div class="step-body">
+              <div class="step-title">新鮮培地への植菌 (Subculturing)</div>
+              <div class="step-text">
+                発現用ディープウェルプレートへ新鮮なLB培地（500 µLまたは1000 µL）を分注。一晩前培養液を5回ピペッティングして均一化した後、5 µLを分取して本培養ウェルへ植菌・混合します。
+              </div>
+              <div class="param-box">culture_volume: 5 µL | media_volume: 500〜1000 µL | culture_mix_number: 5</div>
+            </div>
+          </div>
+
+          <div class="protocol-step">
+            <div class="step-marker">2</div>
+            <div class="step-body">
+              <div class="step-title">培養一時停止 & 誘導剤の自動添加</div>
+              <div class="step-text">
+                プロトコルを一時停止（Pause）し、37℃振盪培養機で目的のOD600（約0.6〜0.8）まで培養。再度デッキにセットして再開すると、リザーバーから誘導剤（0.1 mM IPTGや1.33 mM L-arabinose等）5 µLを各ウェルに自動分注・混合。その後20℃で18時間発現培養します。
+              </div>
+              <div class="param-box">inducer_volume: 5 µL | inducer_id: "0.1mM-IPTG" or "1.33mM-L-Arabinose"</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Protocol 5 -->
+        <div id="tab-p5" class="tab-pane">
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; color: var(--primary);">
+            Protocol 5: Colony PCR Sample Preparation (コロニーPCR調製)
+          </h3>
+          <p style="font-size: 0.9rem; color: var(--gray-700); margin-bottom: 16px;">
+            目的プラスミドの導入およびインサート長を電気泳動で確認するための、96サンプル分のコロニーPCRセットアップを自動化します。
+          </p>
+
+          <div class="protocol-step">
+            <div class="step-marker">1</div>
+            <div class="step-body">
+              <div class="step-title">滅菌水分配 & コロニー再懸濁</div>
+              <div class="step-text">
+                96ウェルPCRプレートに滅菌水を自動分配。採取したコロニーを懸濁します。
+              </div>
+            </div>
+          </div>
+
+          <div class="protocol-step">
+            <div class="step-marker">2</div>
+            <div class="step-body">
+              <div class="step-title">PCRマスターミックス添加 & サーモサイクル実行</div>
+              <div class="step-text">
+                試薬プレートからPCRマスターミックスを各ウェルに自動添加し、4回ピペッティング混合。サーモサイクラーで目的の温度サイクルを自動実行し、アガロースゲル電気泳動に供します。
+              </div>
+              <div class="param-box">mastermix_mix_number: 4 | thermocycler automated run</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Protocol 6 -->
+        <div id="tab-p6" class="tab-pane">
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; color: var(--accent);">
+            Protocol 6: SDS-PAGE Sample Preparation & Cell Lysis (菌体破砕・可溶化・SDS調製)
+          </h3>
+          <div class="callout callout-info" style="margin-top: 0;">
+            <div class="callout-icon">💡</div>
+            <div>
+              <strong>タンパク質精製・分析の中核工程！</strong><br>
+              集菌ペレットからBugBuster等を用いて細胞壁を化学溶解し、遠心分離と低速上清分取によって<strong>「可溶性タンパク質抽出液（Cell-free extract）」</strong>を調製。SDS熱変性またはアフィニティ磁気ビーズ精製へ直結させます。
+            </div>
+          </div>
+
+          <div class="protocol-step">
+            <div class="step-marker">1</div>
+            <div class="step-body">
+              <div class="step-title">菌液サンプリング & プレート遠心 (Pelleting)</div>
+              <div class="step-text">
+                発現培養後のディープウェルから150 µLを分取して溶菌プレートに移送。プロトコルが一時停止し、作業者は外部プレート遠心機で集菌（3,884 ×g, 10分）してデッキに戻します。
+              </div>
+              <div class="param-box">culture_volume: 150 µL | culture_mix: 3 times (100 µL)</div>
+            </div>
+          </div>
+
+          <div class="protocol-step">
+            <div class="step-marker">2</div>
+            <div class="step-body">
+              <div class="step-title">ペレットを乱さない超精密上清除去 (Supernatant Removal)</div>
+              <div class="step-text">
+                沈殿した菌体ペレットを吸い込まないよう、ピペット先端のクリアランスを底面から<strong>3 mm</strong>に自動保持。さらに吸引流速を通常の半分以下の<strong>10 µL/s</strong>に減速して上清を優しく吸引・廃棄します。
+              </div>
+              <div class="param-box">pellet_well_bottom_clearance: 3.0 mm | supernatant_flow_rate_aspirate: 10 µL/s</div>
+            </div>
+          </div>
+
+          <div class="protocol-step">
+            <div class="step-marker">3</div>
+            <div class="step-body">
+              <div class="step-title">細胞溶解液添加 & 可溶性タンパク質抽出 (Cell Lysis)</div>
+              <div class="step-text">
+                BugBusterなどの溶菌試薬40 µLを添加し、5回ピペッティングしてペレットを完全再懸濁。室温で30分間インキュベートして溶菌。再度外部遠心機で細胞残渣（Insoluble fraction）を沈降させます。
+              </div>
+              <div class="param-box">lysis_buffer_volume: 40 µL | lysis_mix_number: 5 | incubation: 30 min</div>
+            </div>
+          </div>
+
+          <div class="protocol-step">
+            <div class="step-marker">4</div>
+            <div class="step-body">
+              <div class="step-title">可溶性抽出液の分取 & オンデッキ熱変性 (Denaturation)</div>
+              <div class="step-text">
+                可溶性タンパク質を含む上清40 µLをサーモサイクラー上の96ウェルPCRプレートへ分注。5x SDSバッファー10 µLを添加・混合後、サーモサイクラー蓋を密閉（蓋温度105℃）し、95℃で5分間加熱変性。そのままSDS-PAGEやウェスタンブロットに供試可能です。
+              </div>
+              <div class="param-box">sds_buffer_volume: 10 µL | lid_temp: 105 ℃ | denaturation: 95 ℃, 5 min</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Protocol 7 -->
+        <div id="tab-p7" class="tab-pane">
+          <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 12px; color: var(--primary);">
+            Protocol 7: OD600 Reading Sample Preparation (OD600測定サンプル調製)
+          </h3>
+          <p style="font-size: 0.9rem; color: var(--gray-700); margin-bottom: 16px;">
+            マイクロプレートリーダーでの菌体増殖曲線（OD600）測定のため、96ウェル平底透明プレートへの正確な希釈分注を自動化します。
+          </p>
+
+          <div class="protocol-step">
+            <div class="step-marker">1</div>
+            <div class="step-body">
+              <div class="step-title">希釈液（水/培地）の分注</div>
+              <div class="step-text">
+                リザーバーから96ウェル平底測定プレートへ希釈液90 µLを分注。
+              </div>
+              <div class="param-box">diluent_volume: 90 µL | diluent_id: "water" or "LB"</div>
+            </div>
+          </div>
+
+          <div class="protocol-step">
+            <div class="step-marker">2</div>
+            <div class="step-body">
+              <div class="step-title">菌液サンプルの混合・微量添加</div>
+              <div class="step-text">
+                培養プレートから培養液10 µLを採取し、測定プレートへ10倍希釈となるように添加・混合。ブランク用ウェルには菌液を添加しないようCSVで柔軟に制御できます。
+              </div>
+              <div class="param-box">culture_volume: 10 µL (Total 100 µL) | culture_mix_number: 3</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: Technical Novelty: Agar Calculation & Sampling -->
+    <section class="section-card" id="sampling-tech">
+      <div class="section-header">
+        <div class="section-number">5</div>
+        <h2 class="section-title">技術的詳細：寒天表面高さの算出モデル & コロニーサンプリング</h2>
+      </div>
+
+      <p style="font-size: 0.92rem; color: var(--gray-600); margin-bottom: 16px;">
+        寒天プレートへのスポッティングとコロニー採取は、自動化における最大の難所のひとつです。寒天培地は手作りのため厚みに数ミリのバラつきが生じます。APEXは物理重量と幾何学モデルを用いた独創的なキャリブレーション技術を導入しました。
+      </p>
+
+      <div class="formula-box">
+        <div class="formula-title">寒天表面高さ（Height_agar）の計算モデル</div>
+        <div class="formula-content">
+          Height<sub>agar</sub> = Weight<sub>agar</sub> / (Area<sub>plate</sub> × Density<sub>agar</sub>)
+        </div>
+        <div style="font-size: 0.85rem; color: var(--gray-600); margin-top: 10px;">
+          Weight<sub>agar</sub> = 寒天注型後プレート重量 − 空プレート重量 &nbsp;|&nbsp; 
+          Area<sub>plate</sub> = ウェル幅 × ウェル長 (Nunc OmniTray: 約 9.4692 cm²)<br>
+          Density<sub>agar</sub> = 1.5% LB寒天密度（実測値: 約 0.911 g/cm³）
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top: 24px;">
+        <div class="info-card">
+          <h4 style="font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 8px;">
+            🎯 スポッティング高さの精密制御
+          </h4>
+          <p style="font-size: 0.88rem; color: var(--gray-600); line-height: 1.6;">
+            算出した寒天高さにオフセット値 <code>spotting_height: +0.5 mm</code> を加えることで、チップ先端が寒天表面に接触せず、かつ液滴が寒天表面に優しく触れる絶妙な高さを維持。寒天の破砕や液滴の飛散を100%防止します。
+          </p>
+        </div>
+
+        <div class="info-card">
+          <h4 style="font-size: 1rem; font-weight: 700; color: var(--dark); margin-bottom: 8px;">
+            🌀 スパイラル採取アルゴリズム（低密度コロニー対応）
+          </h4>
+          <p style="font-size: 0.88rem; color: var(--gray-600); line-height: 1.6;">
+            コロニー密度が低い場合、単一貫通では菌体が拾えないリスクがあります。スパイラル法では、スポット中心から外周へ滑らかな渦巻き（例: 半径 2.5 mm、3回転、40補間点）を描いて低速スキャンし、寒天を削り取ることなく菌体のみを絡め取ります。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 6: Protein Purification Integration -->
+    <section class="section-card" id="purification">
+      <div class="section-header">
+        <div class="section-number">6</div>
+        <h2 class="section-title">タンパク質精製（Purification）への応用と自動化展開</h2>
+      </div>
+
+      <p style="font-size: 0.92rem; color: var(--gray-600); margin-bottom: 20px;">
+        本文献（Kasprzyk et al., 2025）では、Protocol 6において大腸菌菌体ペレットのBugBuster溶解を行い、不溶性細胞残渣を遠心沈降させた<strong>「可溶性抽出液（Cell-free extract / Supernatant）」</strong>の自動分取までを確立しています。この抽出液は、下流の<strong>アフィニティ磁気ビーズ精製（His-tag, Strep-tag, GST-tag等）</strong>へそのまま直結させることができます。
+      </p>
+
+      <div class="purif-flow">
+        <div class="purif-card">
+          <div class="purif-badge">Step 1: 抽出 (APEX P6)</div>
+          <div>
+            <strong style="color: var(--dark);">化学的溶菌 & 遠心上清分取（可溶性ライセートの取得）</strong>
+            <p style="font-size: 0.86rem; color: var(--gray-600); margin-top: 4px;">
+              OT-2がBugBuster＋ベンゾナーゼ（DNA分解酵素）を分注・混和し、菌体を温和に破砕。可溶性タンパク質を含む上清（40〜100 µL）を96ウェルプレートに高精度回収。
+            </p>
+          </div>
+        </div>
+
+        <div class="purif-card">
+          <div class="purif-badge" style="background: var(--primary);">Step 2: 結合 (OT-2 Magnetic)</div>
+          <div>
+            <strong style="color: var(--dark);">磁気ビーズ添加 & インキュベート (Binding)</strong>
+            <p style="font-size: 0.86rem; color: var(--gray-600); margin-top: 4px;">
+              抽出液にNi-NTA Magnetic Agarose BeadsまたはMagneHis等の磁気ビーズを添加。ピペッティング混合により目的のHisタグ融合タンパク質をビーズに特異的結合。
+            </p>
+          </div>
+        </div>
+
+        <div class="purif-card">
+          <div class="purif-badge" style="background: var(--secondary);">Step 3: 洗浄 (OT-2 Magnetic)</div>
+          <div>
+            <strong style="color: var(--dark);">磁気分離 & 非特異的タンパク質の洗浄 (Washing)</strong>
+            <p style="font-size: 0.86rem; color: var(--gray-600); margin-top: 4px;">
+              Opentrons Magnetic ModuleをONにし、ビーズをウェル側面に吸着固定。非特異吸着タンパク質を含む上清を除去後、洗浄バッファー（20〜30 mM イミダゾール含有）で2〜3回洗浄。
+            </p>
+          </div>
+        </div>
+
+        <div class="purif-card">
+          <div class="purif-badge" style="background: var(--success);">Step 4: 溶出 (OT-2 Elution)</div>
+          <div>
+            <strong style="color: var(--dark);">高純度タンパク質の溶出 & 回収 (Elution)</strong>
+            <p style="font-size: 0.86rem; color: var(--gray-600); margin-top: 4px;">
+              溶出バッファー（250〜500 mM イミダゾール）を添加し、ビーズから目的タンパク質を遊離。再度磁気ビーズを捕捉し、精製タンパク質溶液をクリーンな96ウェルプレートへ回収。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="callout callout-success">
+        <div class="callout-icon">✨</div>
+        <div>
+          <strong>完全自動化の統合メリット:</strong><br>
+          形質転換から発現スクリーニング、そしてマイクロスケール磁気精製までを同じ96ウェルフォーマットで一貫処理することで、数十〜百種類に及ぶ変異体タンパク質の酵素活性スクリーニングや構造解析用サンプルの調製スループットが飛躍的に向上します。
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 7: Experimental Validation & Results -->
+    <section class="section-card" id="results">
+      <div class="section-header">
+        <div class="section-number">7</div>
+        <h2 class="section-title">実証実験データ & 手動作業との比較評価</h2>
+      </div>
+
+      <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--dark); margin-bottom: 12px;">
+        🧬 実証されたターゲットタンパク質 & プラスミド多様性
+      </h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>プラスミドID</th>
+              <th>ベクター / プロモーター</th>
+              <th>サイズ</th>
+              <th>発現タンパク質 / 遺伝子産物</th>
+              <th>分子量</th>
+              <th>耐性マーカー</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>pEX01</strong></td>
+              <td>pUC19 (Lac)</td>
+              <td>2.7 kb</td>
+              <td>コントロール（空ベクター）</td>
+              <td>-</td>
+              <td><span class="badge badge-primary">Ampicillin</span></td>
+            </tr>
+            <tr>
+              <td><strong>pEX05</strong></td>
+              <td>pJKR-H-araC (PBAD)</td>
+              <td>4.9 kb</td>
+              <td><strong>sfGFP</strong> (超高輝度緑色蛍光タンパク質)</td>
+              <td>27 kDa</td>
+              <td><span class="badge badge-primary">Ampicillin</span></td>
+            </tr>
+            <tr>
+              <td><strong>pEX04</strong></td>
+              <td>pACYC-Duet (T7)</td>
+              <td>4.7 kb</td>
+              <td><strong>Sfp</strong> (ホスホパンテテイニルトランスフェラーゼ)</td>
+              <td>29 kDa</td>
+              <td><span class="badge badge-purple">Chloramphenicol</span></td>
+            </tr>
+            <tr>
+              <td><strong>pEX09</strong></td>
+              <td>pET28a (T7)</td>
+              <td>6.6 kb</td>
+              <td><strong>CVTA</strong> (ω-トランスアミナーゼ)</td>
+              <td>49 kDa</td>
+              <td><span class="badge badge-success">Kanamycin</span></td>
+            </tr>
+            <tr>
+              <td><strong>pEX07</strong></td>
+              <td>pET26b (T7)</td>
+              <td>11.6 kb</td>
+              <td><strong>PKS Module</strong> (改変型ポリケチド合成酵素)</td>
+              <td>222 kDa</td>
+              <td><span class="badge badge-success">Kanamycin</span></td>
+            </tr>
+            <tr>
+              <td><strong>pEX08</strong></td>
+              <td>pET26b (T7)</td>
+              <td>17.7 kb</td>
+              <td><strong>PKS Bimodule</strong> (大型ポリケチド合成酵素)</td>
+              <td>巨大酵素</td>
+              <td><span class="badge badge-success">Kanamycin</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 style="font-size: 1.05rem; font-weight: 700; color: var(--dark); margin: 24px 0 12px;">
+        ⏱️ 96サンプル処理における作業時間の劇的削減（手動 vs APEX）
+      </h3>
+      <p style="font-size: 0.88rem; color: var(--gray-600); margin-bottom: 12px;">
+        熟練研究者によるマルチチャンネルピペット操作（手動）とAPEX自動ログの実測比較データ（文献 Supplementary Table S1 より引用）：
+      </p>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>プロトコル</th>
+              <th>手動：作業者拘束時間<br><small>(Active Operator Time)</small></th>
+              <th>APEX：作業者拘束時間<br><small>(Active Operator Time)</small></th>
+              <th>拘束時間の削減率</th>
+              <th>APEX：ロボット自動処理時間<br><small>(Passive Automated Time)</small></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>P1: ヒートショック形質転換</strong></td>
+              <td>25.8 分</td>
+              <td style="color: var(--success); font-weight: 700;">0.5 分</td>
+              <td><span class="badge badge-success">98.1% 削減</span></td>
+              <td>109.4 分（温度制御含む）</td>
+            </tr>
+            <tr>
+              <td><strong>P2: 寒天選択播種</strong></td>
+              <td>19.6 分</td>
+              <td style="color: var(--success); font-weight: 700;">2.0 分</td>
+              <td><span class="badge badge-success">89.8% 削減</span></td>
+              <td>8.3 分</td>
+            </tr>
+            <tr>
+              <td><strong>P3: コロニー採取・植菌</strong></td>
+              <td>18.6 分</td>
+              <td style="color: var(--success); font-weight: 700;">2.0 分</td>
+              <td><span class="badge badge-success">89.2% 削減</span></td>
+              <td>10.9 分</td>
+            </tr>
+            <tr>
+              <td><strong>P4: 本培養植菌 & 発現誘導</strong></td>
+              <td>30.5 分</td>
+              <td style="color: var(--success); font-weight: 700;">4.0 分</td>
+              <td><span class="badge badge-success">86.9% 削減</span></td>
+              <td>105.9 分（培養待機含む）</td>
+            </tr>
+            <tr style="background: #f0fdf4; font-weight: 700;">
+              <td>合計（コア4工程）</td>
+              <td>94.5 分（約1.6時間）</td>
+              <td style="color: var(--success);">8.5 分</td>
+              <td><span class="badge badge-success">約91% 削減</span></td>
+              <td>234.5 分（完全無人化）</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout callout-info">
+        <div class="callout-icon">🔍</div>
+        <div>
+          <strong>可溶性タンパク質発現の同等性:</strong><br>
+          0.5 mLおよび1.0 mLのディープウェル培養において、手動法とAPEX自動化法を比較したSDS-PAGE解析の結果、29 kDa（Sfp）、49 kDa（CVTA）、さらには222 kDa（巨大PKS）に至るすべてのターゲットで、手動と同等以上のバンド強度と可溶性収量が実証されました。
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 8: Practical Tips & Troubleshooting -->
+    <section class="section-card" id="tips">
+      <div class="section-header">
+        <div class="section-number">8</div>
+        <h2 class="section-title">実験現場での導入Tips & トラブルシューティング</h2>
+      </div>
+
+      <div class="grid-2">
+        <div class="info-card">
+          <div class="card-icon">🧫</div>
+          <h4 class="card-title">寒天プレート乾燥の徹底（液滴拡散防止）</h4>
+          <p class="card-desc">
+            注型した寒天培地が湿っていると、滴下したスポットが隣接ウェルへ毛細管現象で広がってしまいます。クリーンベンチ内で蓋を少し開けて30分〜1時間しっかり表面乾燥させてからOT-2にセットしてください。
+          </p>
+        </div>
+
+        <div class="info-card">
+          <div class="card-icon">⚖️</div>
+          <h4 class="card-title">プレート重量測定の精度（±0.1 g）</h4>
+          <p class="card-desc">
+            寒天の厚み算出は空プレートと注型後プレートの差分重量に基づきます。精密天秤で正確に秤量し、CSV/JSONに入力することで、チップ先端のZ軸クリアランスが完璧に維持されます。
+          </p>
+        </div>
+
+        <div class="info-card">
+          <div class="card-icon">🧼</div>
+          <h4 class="card-title">ペレット吸引時の底面クリアランス（3 mm）</h4>
+          <p class="card-desc">
+            遠心後の菌体ペレット吸引時は、<code>pellet_well_bottom_clearance</code> を必ず3 mm以上に設定し、吸引流速を10 µL/sに落とします。ペレットが緩い場合は遠心条件を強化（4,000 ×g, 15分）するか、クリアランスを3.5 mmに調整します。
+          </p>
+        </div>
+
+        <div class="info-card">
+          <div class="card-icon">🫧</div>
+          <h4 class="card-title">気泡混入とキャリーオーバーの防止</h4>
+          <p class="card-desc">
+            粘性の高い試薬（5x SDSサンプルバッファーやLysis Buffer）では、吸引後の移動待ち時間（遅延数秒）を確保し、ブローアウト位置を液面上に設定することでチップ外側への液付着を防ぎます。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 9: References & Resources -->
+    <section class="section-card" id="resources">
+      <div class="section-header">
+        <div class="section-number">9</div>
+        <h2 class="section-title">文献情報 & オープンソースリソース</h2>
+      </div>
+
+      <p style="font-size: 0.92rem; color: var(--gray-600); margin-bottom: 16px;">
+        本ガイドのベースとなった文献および公式公開コードリポジトリの情報です。
+      </p>
+
+      <div class="table-container">
+        <table>
+          <tbody>
+            <tr>
+              <td style="width: 25%; font-weight: 600;">論文タイトル</td>
+              <td>APEX: Automated Protein EXpression in Escherichia coli</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 600;">著者陣</td>
+              <td>Martyna Kasprzyk, Michael A. Herrera, Giovanni Stracquadanio</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 600;">所属機関</td>
+              <td>School of Biological Sciences / School of Chemistry, The University of Edinburgh (英国)</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 600;">DOI / Preprint</td>
+              <td><a href="https://doi.org/10.1101/2024.08.13.607171" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 600;">https://doi.org/10.1101/2024.08.13.607171</a> (bioRxiv / ACS Synth. Biol. 2025)</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 600;">GitHubリポジトリ</td>
+              <td><a href="https://github.com/stracquadaniolab/apex-nf" target="_blank" style="color: var(--primary); text-decoration: none; font-weight: 600;">https://github.com/stracquadaniolab/apex-nf</a> (Nextflowパイプライン一式)</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 600;">ライセンス</td>
+              <td>AGPL-3.0 (GNU Affero General Public License v3.0)</td>
+            </tr>
+            <tr>
+              <td style="font-weight: 600;">参照ファイル</td>
+              <td>
+                • 本論文: <code>☆2025_Opentrons_APEX.pdf</code><br>
+                • 補足手法・データ: <code>☆2025_Opentrons_APEX-SI1.pdf</code><br>
+                • ステップ別操作マニュアル: <code>☆2025_Opentrons_APEX-S2.pdf</code>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+      <p>Automated Protein Expression & Purification Guide | Generated based on Kasprzyk et al., 2025</p>
+      <p style="margin-top: 4px; font-size: 0.75rem;">Created for Opentrons OT-2 Users & Protein Engineering Researchers</p>
+    </footer>
+
+  </main>
+</div>
+
+<script>
+  // Tab Switching Function
+  function switchTab(evt, tabId) {
+    const tabPanes = document.querySelectorAll('.tab-pane');
+    tabPanes.forEach(pane => pane.classList.remove('active'));
+
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    tabButtons.forEach(btn => btn.classList.remove('active'));
+
+    document.getElementById(tabId).classList.add('active');
+    evt.currentTarget.classList.add('active');
+  }
+
+  // Active navigation highlight on scroll
+  window.addEventListener('DOMContentLoaded', () => {
+    const sections = document.querySelectorAll('section, .hero-banner');
+    const navItems = document.querySelectorAll('.sidebar-nav .nav-item');
+
+    window.addEventListener('scroll', () => {
+      let current = '';
+      sections.forEach(section => {
+        const sectionTop = section.offsetTop - 100;
+        if (pageYOffset >= sectionTop) {
+          current = section.getAttribute('id');
+        }
+      });
+
+      navItems.forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('href') === `#${current}`) {
+          item.classList.add('active');
+        }
+      });
+    });
+  });
+</script>
+
+</body>
+</html>

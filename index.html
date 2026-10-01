@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opentrons全7自動化プロトコル統合マトリクス & システムアーキテクチャ詳細ガイド (APEX)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --primary-light: #eff6ff;
+      --accent: #0f766e;
+      --accent-light: #f0fdfa;
+      --accent-badge: #0d9488;
+      --secondary: #6366f1;
+      --success: #16a34a;
+      --success-light: #f0fdf4;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --danger: #dc2626;
+      --dark-slate: #0f172a;
+      --slate-800: #1e293b;
+      --slate-700: #334155;
+      --slate-600: #475569;
+      --slate-500: #64748b;
+      --slate-400: #94a3b8;
+      --slate-200: #e2e8f0;
+      --slate-100: #f1f5f9;
+      --slate-50: #f8fafc;
+      --white: #ffffff;
+      --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background-color: #f8fafc;
+      color: var(--slate-800);
+      line-height: 1.6;
+    }
+
+    /* Layout */
+    .header-nav {
+      background: var(--dark-slate);
+      color: white;
+      padding: 16px 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--slate-700);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .brand-badge {
+      background: var(--primary);
+      color: white;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 20px;
+    }
+
+    .nav-link {
+      color: var(--slate-400);
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      transition: color 0.15s;
+    }
+
+    .nav-link:hover { color: white; }
+
+    .main-wrapper {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 36px 36px 80px;
+    }
+
+    /* Top Summary Banner */
+    .summary-banner {
+      background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+      color: white;
+      padding: 40px;
+      border-radius: var(--radius-lg);
+      margin-bottom: 36px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .banner-tags {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.15);
+      letter-spacing: 0.03em;
+    }
+
+    .tag.accent { background: var(--accent-badge); color: white; }
+
+    .banner-title {
+      font-size: 2.1rem;
+      font-weight: 800;
+      line-height: 1.25;
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    .banner-desc {
+      font-size: 1.05rem;
+      color: var(--slate-200);
+      max-width: 1050px;
+      line-height: 1.65;
+    }
+
+    /* Metric Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-top: 28px;
+    }
+
+    .kpi-card {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      backdrop-filter: blur(8px);
+    }
+
+    .kpi-num {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #38bdf8;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .kpi-num.green { color: #4ade80; }
+
+    .kpi-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: white;
+      margin-top: 2px;
+    }
+
+    .kpi-sub {
+      font-size: 0.75rem;
+      color: var(--slate-400);
+      margin-top: 2px;
+    }
+
+    /* Section Component */
+    .section-box {
+      background: white;
+      border: 1px solid var(--slate-200);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      margin-bottom: 36px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .section-title-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--slate-100);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--dark-slate);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-badge {
+      font-size: 0.78rem;
+      background: var(--primary-light);
+      color: var(--primary);
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-weight: 700;
+    }
+
+    /* Matrix Table Styles */
+    .matrix-table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--slate-200);
+    }
+
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+      text-align: left;
+    }
+
+    .matrix-table th {
+      background: #f1f5f9;
+      color: var(--slate-700);
+      font-weight: 700;
+      padding: 12px 14px;
+      border-bottom: 2px solid var(--slate-200);
+      border-right: 1px solid var(--slate-200);
+      white-space: nowrap;
+    }
+
+    .matrix-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--slate-200);
+      border-right: 1px solid var(--slate-200);
+      vertical-align: top;
+      color: var(--slate-700);
+    }
+
+    .matrix-table td:last-child, .matrix-table th:last-child {
+      border-right: none;
+    }
+
+    .matrix-table tr:hover td {
+      background-color: #f8fafc;
+    }
+
+    .proto-badge {
+      display: inline-block;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 0.74rem;
+      margin-bottom: 4px;
+    }
+
+    .p-blue { background: #dbeafe; color: #1e40af; }
+    .p-green { background: #dcfce7; color: #15803d; }
+    .p-amber { background: #fef3c7; color: #b45309; }
+    .p-teal { background: #ccfbf1; color: #0f766e; }
+    .p-purple { background: #ede9fe; color: #6d28d9; }
+    .p-rose { background: #ffe4e6; color: #be123c; }
+    .p-indigo { background: #e0e7ff; color: #3730a3; }
+
+    .time-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.74rem;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .time-active { background: #fee2e2; color: #991b1b; }
+    .time-passive { background: #dbeafe; color: #1e40af; }
+    .time-save { background: #dcfce7; color: #166534; font-weight: 700; }
+
+    /* Figure Display Container */
+    .figure-container {
+      background: #f8fafc;
+      border: 1px solid var(--slate-200);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin: 20px 0;
+      box-shadow: var(--shadow-card);
+    }
+
+    .figure-header {
+      background: #0f172a;
+      color: white;
+      padding: 10px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .figure-badge {
+      background: var(--primary);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .figure-body {
+      padding: 16px;
+      text-align: center;
+      background: white;
+    }
+
+    .figure-img {
+      max-width: 100%;
+      height: auto;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--slate-200);
+      display: inline-block;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    .figure-caption-box {
+      padding: 16px 20px;
+      background: #f8fafc;
+      border-top: 1px solid var(--slate-200);
+      font-size: 0.84rem;
+      color: var(--slate-700);
+      line-height: 1.6;
+      text-align: left;
+    }
+
+    .caption-title {
+      font-weight: 700;
+      color: var(--dark-slate);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .figure-points {
+      list-style: none;
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .figure-points li {
+      position: relative;
+      padding-left: 20px;
+      font-size: 0.82rem;
+      color: var(--slate-600);
+    }
+
+    .figure-points li::before {
+      content: "▶";
+      position: absolute;
+      left: 2px;
+      top: 1px;
+      font-size: 0.65rem;
+      color: var(--primary);
+    }
+
+    /* Deck Layout Side by Side */
+    .deck-figure-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #f1f5f9;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--slate-200);
+      margin-top: 12px;
+    }
+
+    .deck-img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+      border: 1px solid var(--slate-300);
+      background: white;
+    }
+
+    /* Architecture Layer Diagram */
+    .arch-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .arch-layer {
+      border: 1px solid var(--slate-200);
+      border-radius: var(--radius-md);
+      padding: 18px 22px;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 20px;
+      align-items: center;
+      transition: all 0.2s;
+    }
+
+    .arch-layer:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-card);
+    }
+
+    .layer-header {
+      border-right: 2px solid var(--slate-200);
+      padding-right: 16px;
+    }
+
+    .layer-number {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--slate-400);
+    }
+
+    .layer-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--dark-slate);
+      margin-top: 2px;
+    }
+
+    .layer-body {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .arch-item {
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .arch-item-title {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--slate-800);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .arch-item-desc {
+      font-size: 0.76rem;
+      color: var(--slate-500);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    /* Detailed Protocol Cards */
+    .protocol-cards-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .detail-card {
+      background: white;
+      border: 1px solid var(--slate-200);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      border-left: 6px solid var(--primary);
+    }
+
+    .detail-card.c-p1 { border-left-color: #2563eb; }
+    .detail-card.c-p2 { border-left-color: #0f766e; }
+    .detail-card.c-p3 { border-left-color: #d97706; }
+    .detail-card.c-p4 { border-left-color: #16a34a; }
+    .detail-card.c-p5 { border-left-color: #6d28d9; }
+    .detail-card.c-p6 { border-left-color: #be123c; }
+    .detail-card.c-p7 { border-left-color: #3730a3; }
+
+    .card-top {
+      background: var(--slate-50);
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--slate-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .card-title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .card-h3 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--dark-slate);
+    }
+
+    .card-pill-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .card-main {
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr;
+      gap: 24px;
+    }
+
+    .detail-section-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--slate-500);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .action-steps-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .action-step-item {
+      display: flex;
+      gap: 12px;
+      font-size: 0.86rem;
+      line-height: 1.5;
+      color: var(--slate-700);
+    }
+
+    .step-index-badge {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--slate-200);
+      color: var(--slate-700);
+      font-weight: 700;
+      font-size: 0.74rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .specs-box {
+      background: var(--slate-50);
+      border: 1px solid var(--slate-200);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .spec-row {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .spec-key {
+      font-weight: 600;
+      color: var(--slate-500);
+    }
+
+    .spec-val {
+      font-weight: 600;
+      color: var(--slate-800);
+    }
+
+    .code-mini {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      background: white;
+      border: 1px solid var(--slate-200);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: #be123c;
+    }
+
+    /* Purification Flow Box */
+    .purif-schema-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .purif-step-card {
+      background: white;
+      border: 1px solid var(--slate-200);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      box-shadow: var(--shadow-card);
+      position: relative;
+    }
+
+    .purif-step-num {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--accent);
+      background: var(--accent-light);
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+
+    .purif-step-title {
+      font-size: 0.96rem;
+      font-weight: 700;
+      color: var(--slate-800);
+      margin-bottom: 6px;
+    }
+
+    .purif-step-text {
+      font-size: 0.8rem;
+      color: var(--slate-600);
+      line-height: 1.45;
+    }
+
+    /* Responsive */
+    @media (max-width: 1080px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .card-main { grid-template-columns: 1fr; }
+      .arch-layer { grid-template-columns: 1fr; gap: 12px; }
+      .layer-header { border-right: none; border-bottom: 2px solid var(--slate-200); padding-bottom: 8px; }
+      .purif-schema-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .header-nav { padding: 12px 16px; }
+      .main-wrapper { padding: 16px 16px 60px; }
+      .summary-banner { padding: 24px; }
+      .banner-title { font-size: 1.5rem; }
+      .kpi-grid { grid-template-columns: 1fr; }
+      .purif-schema-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header Sticky Bar -->
+<header class="header-nav">
+  <div class="brand">
+    <span class="brand-badge">APEX 2025</span>
+    <span>Opentrons 自動化プロトコル & アーキテクチャ統合マトリクス (図解版)</span>
+  </div>
+  <nav class="nav-links">
+    <a href="#matrix" class="nav-link">全7プロトコル対照表</a>
+    <a href="#architecture" class="nav-link">システムアーキテクチャ (Fig.1)</a>
+    <a href="#sampling-tech" class="nav-link">寒天計算 & コロニー採取 (Fig.2)</a>
+    <a href="#details" class="nav-link">各プロトコル図解スペック</a>
+    <a href="#validation" class="nav-link">実験検証データ (Fig.5/6/S1)</a>
+  </nav>
+</header>
+
+<div class="main-wrapper">
+
+  <!-- Top Hero Banner -->
+  <div class="summary-banner">
+    <div class="banner-tags">
+      <span class="tag accent">bioRxiv / ACS Synth Biol 2025</span>
+      <span class="tag">Opentrons OT-2 + Thermocycler</span>
+      <span class="tag">96-Well Microculture Platform</span>
+      <span class="tag">PDF図解 & デッキ配置図 完全収録</span>
+    </div>
+    <h1 class="banner-title">
+      Opentronsによる大腸菌タンパク質発現・精製の完全自動化<br>
+      全7プロトコルの検体数・所要時間・実験内容・必要機材・原著図解マトリクス
+    </h1>
+    <p class="banner-desc">
+      本ドキュメントは、エジンバラ大学（Kasprzyk et al., 2025）が開発した自動タンパク質発現プラットフォーム「APEX」の原著論文、補足データ（SI1）、およびプロトコルマニュアル（S2）に掲載された<strong>全ての公式図版（ワークフロー概要、寒天モデリング式、サンプリング軌道、各プロトコルのOT-2デッキ配置図、時間比較グラフ、電気泳動・発現ゲル写真）</strong>を組み込み、<strong>「どのような実験がOpentronsで自動化でき、各プロトコルで何検体をどれだけの時間で処理したのか、そしてどのようなアーキテクチャが必要なのか」</strong>を視覚的かつ直感的に理解できるよう再構築した技術リファレンスです。
+    </p>
+
+    <div class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-num">7 Protocols</div>
+        <div class="kpi-label">実装された自動化モジュール</div>
+        <div class="kpi-sub">形質転換から菌体破砕・熱変性まで完全網羅</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-num">96 Well</div>
+        <div class="kpi-label">標準処理バッチ検体数</div>
+        <div class="kpi-sub">ディープウェルによるマイクロスケール培養</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-num green">98.1% 減</div>
+        <div class="kpi-label">最大作業者拘束時間削減率</div>
+        <div class="kpi-sub">形質転換: 25.8分 → わずか 0.5分 に短縮</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-num">27〜222 kDa</div>
+        <div class="kpi-label">発現実証されたタンパク質分子量</div>
+        <div class="kpi-sub">超巨大ポリケチド合成酵素まで可溶性発現</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: Master Matrix Table -->
+  <section class="section-box" id="matrix">
+    <div class="section-title-wrap">
+      <h2 class="section-title">
+        <span>📊</span>
+        <span>【一目でわかる】全7自動化プロトコル 統合対照マトリクス</span>
+      </h2>
+      <span class="section-badge">Master Comparison Table</span>
+    </div>
+    <p style="font-size: 0.9rem; color: var(--slate-600); margin-bottom: 18px;">
+      各プロトコルが対象とする実験内容、処理検体数、所要時間（作業者拘束時間 vs ロボット自動時間）、必要なOpentrons機器・ピペット・試薬・モジュールを一元集約しています。
+    </p>
+
+    <div class="matrix-table-wrap">
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th style="min-width: 130px;">プロトコル番号・名称</th>
+            <th style="min-width: 140px;">実験の目的と対象</th>
+            <th style="min-width: 90px;">標準検体数</th>
+            <th style="min-width: 160px;">所要時間 (96検体)<br><small>手動 vs APEX自動</small></th>
+            <th style="min-width: 240px;">何をしたのか（主要自動化動作）</th>
+            <th style="min-width: 170px;">Opentrons機器 & モジュール</th>
+            <th style="min-width: 140px;">ピペット & チップ</th>
+            <th style="min-width: 170px;">使用試薬・培地</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Protocol 1 -->
+          <tr>
+            <td>
+              <span class="proto-badge p-blue">Protocol 1</span><br>
+              <strong>Heat Shock Transformation</strong><br>
+              <small>(ヒートショック形質転換)</small>
+            </td>
+            <td>プラスミドDNAのコンピテントセルへの自動導入</td>
+            <td><strong>96 検体</strong><br><small>(96-well)</small></td>
+            <td>
+              拘束時間: <span class="time-chip time-save">0.5 分</span><br>
+              <small style="color:var(--slate-400);">(手動: 25.8分 / 98%減)</small><br>
+              自動時間: <span class="time-chip time-passive">109.4 分</span><br>
+              合計: <strong>109.9 分</strong>
+            </td>
+            <td>
+              • 予冷セル(10 µL)のPCRプレート分注<br>
+              • プラスミドDNA(1 µL)の添加・混合<br>
+              • サーモサイクラー自動密閉: 4℃(30分) → 42℃(30秒) → 4℃(2分)<br>
+              • SOC培地(50 µL)分注・懸濁<br>
+              • 37℃で60分間復帰培養
+            </td>
+            <td>
+              • <strong>OT-2 本体</strong><br>
+              • <strong>Thermocycler Module GEN1</strong> (スロット7,8,10,11)
+            </td>
+            <td>
+              • P20 8ch GEN2<br>
+              • P300 8ch GEN2<br>
+              • 20 µL / 300 µL フィルターチップ
+            </td>
+            <td>
+              • ケミカルコンピテントセル<br>
+              • プラスミドDNA (2.7〜17.7 kb)<br>
+              • SOC培地
+            </td>
+          </tr>
+
+          <!-- Protocol 2 -->
+          <tr>
+            <td>
+              <span class="proto-badge p-teal">Protocol 2</span><br>
+              <strong>Selective Plating</strong><br>
+              <small>(寒天選択培地への播種)</small>
+            </td>
+            <td>抗生物質寒天プレートへの96グリッド高精度スポット</td>
+            <td><strong>96 スポット</strong><br><small>(単一寒天プレート)</small></td>
+            <td>
+              拘束時間: <span class="time-chip time-save">2.0 分</span><br>
+              <small style="color:var(--slate-400);">(手動: 19.6分 / 90%減)</small><br>
+              自動時間: <span class="time-chip time-passive">8.3 分</span><br>
+              合計: <strong>10.3 分</strong>
+            </td>
+            <td>
+              • 寒天重量・面積から高さを数学的算出<br>
+              • 形質転換液(5 µL+予備1 µL)を吸引<br>
+              • 寒天表面 <strong>+0.5 mm</strong> からソフト滴下<br>
+              • ブローアウトを行わず5秒静置し液滴を静かに着地 (気泡・拡散防止)
+            </td>
+            <td>
+              • <strong>OT-2 本体</strong><br>
+              • (外部: 37℃静置インキュベーター、精密天秤)
+            </td>
+            <td>
+              • P20 8ch GEN2<br>
+              • 20 µL チップ
+            </td>
+            <td>
+              • LB寒天培地 (1.5% agar)<br>
+              • 各種抗生物質 (Amp, Kan, Cm, Zeocin)
+            </td>
+          </tr>
+
+          <!-- Protocol 3 -->
+          <tr>
+            <td>
+              <span class="proto-badge p-amber">Protocol 3</span><br>
+              <strong>Colony Sampling</strong><br>
+              <small>(コロニー採取・植菌)</small>
+            </td>
+            <td>画像認識不要の寒天コロニー自動採取 & 液体培地植菌</td>
+            <td><strong>96 コロニー</strong><br><small>(96ディープウェル)</small></td>
+            <td>
+              拘束時間: <span class="time-chip time-save">2.0 分</span><br>
+              <small style="color:var(--slate-400);">(手動: 18.6分 / 89%減)</small><br>
+              自動時間: <span class="time-chip time-passive">10.9 分</span><br>
+              合計: <strong>12.9 分</strong>
+            </td>
+            <td>
+              • ディープウェルへLB液体培地を自動分注<br>
+              • チップ先端で寒天上のコロニーを採取:<br>
+              &nbsp;&nbsp;- <strong>Single Pierce法</strong>: 高密度中心を貫通<br>
+              &nbsp;&nbsp;- <strong>Spiral法</strong>: 低密度用スパイラル走査<br>
+              • 液体培地中へ浸漬・2回ピペッティング懸濁
+            </td>
+            <td>
+              • <strong>OT-2 本体</strong><br>
+              • (外部: 37℃振盪インキュベーター)
+            </td>
+            <td>
+              • P20 8ch GEN2 (採取)<br>
+              • P300 8ch GEN2 (培地)<br>
+              • 20 µL / 300 µL チップ
+            </td>
+            <td>
+              • LB液体培地 (抗生物質添加)
+            </td>
+          </tr>
+
+          <!-- Protocol 4 -->
+          <tr>
+            <td>
+              <span class="proto-badge p-green">Protocol 4</span><br>
+              <strong>Protein Expression Induction</strong><br>
+              <small>(本培養植菌 & 発現誘導)</small>
+            </td>
+            <td>前培養からの本培養植菌および誘導剤の自動添加</td>
+            <td><strong>96 培養系</strong><br><small>(0.5〜1.0 mL)</small></td>
+            <td>
+              拘束時間: <span class="time-chip time-save">4.0 分</span><br>
+              <small style="color:var(--slate-400);">(手動: 30.5分 / 87%減)</small><br>
+              自動時間: <span class="time-chip time-passive">105.9 分</span><br>
+              合計: <strong>109.9 分</strong>
+            </td>
+            <td>
+              • 新鮮LB培地(500〜1000 µL)を自動分注<br>
+              • 前培養液(5 µL)を本培養へ植菌・混合<br>
+              • 37℃振盪インキュベーターでOD600まで培養<br>
+              • IPTG(0.1 mM)またはアラビノース(1.33 mM)を5 µL自動添加・混合<br>
+              • 20℃で18時間発現振盪培養
+            </td>
+            <td>
+              • <strong>OT-2 本体</strong><br>
+              • (外部: 37℃ / 20℃振盪インキュベーター)
+            </td>
+            <td>
+              • P20 8ch GEN2 (植菌・誘導)<br>
+              • P300 8ch GEN2 (培地分注)<br>
+              • 20 µL / 300 µL チップ
+            </td>
+            <td>
+              • 新鮮LB培地<br>
+              • 誘導剤 (0.1 mM IPTG / 1.33 mM L-アラビノース)
+            </td>
+          </tr>
+
+          <!-- Protocol 5 -->
+          <tr>
+            <td>
+              <span class="proto-badge p-purple">Protocol 5</span><br>
+              <strong>Colony PCR Sample Prep</strong><br>
+              <small>(コロニーPCR調製)</small>
+            </td>
+            <td>形質転換体の確認・品質管理（QC）用PCR反応系構築</td>
+            <td><strong>24〜96 検体</strong></td>
+            <td>
+              拘束時間: <span class="time-chip time-save">約 5〜10 分</span><br>
+              自動時間: <span class="time-chip time-passive">約 75〜90 分</span><br>
+              <small style="color:var(--slate-400);">(PCR 30サイクル運転含む)</small>
+            </td>
+            <td>
+              • 滅菌水(11.5 µL)をPCRプレートに分注<br>
+              • コロニー再懸濁<br>
+              • OneTaq 2X MasterMix+プライマー(13.5 µL)を添加・4回混合<br>
+              • サーモサイクラー自動密閉: [94℃ 30s / 52℃ 30s / 68℃ 45s] × 30回<br>
+              • アガロースゲル電気泳動でサイズ確認
+            </td>
+            <td>
+              • <strong>OT-2 本体</strong><br>
+              • <strong>Thermocycler Module GEN1</strong><br>
+              • (外部: アガロースゲル電気泳動槽)
+            </td>
+            <td>
+              • P20 8ch GEN2<br>
+              • P300 8ch GEN2<br>
+              • 20 µL / 300 µL チップ
+            </td>
+            <td>
+              • 滅菌水<br>
+              • OneTaq Quick-Load 2X Master Mix<br>
+              • 特異的PCRプライマー対 (0.5 µM)
+            </td>
+          </tr>
+
+          <!-- Protocol 6 -->
+          <tr>
+            <td>
+              <span class="proto-badge p-rose">Protocol 6</span><br>
+              <strong>SDS-PAGE & Cell Lysis</strong><br>
+              <small>(菌体破砕・可溶化・熱変性)</small>
+            </td>
+            <td>菌体化学溶菌、可溶性画分の抽出、SDS熱変性調製</td>
+            <td><strong>96 検体</strong><br><small>(下流精製原料)</small></td>
+            <td>
+              拘束時間: <span class="time-chip time-save">約 5〜8 分</span><br>
+              <small style="color:var(--slate-400);">(遠心機移動のみ)</small><br>
+              自動時間: <span class="time-chip time-passive">約 45〜55 分</span><br>
+              合計: <strong>約 50〜60 分</strong>
+            </td>
+            <td>
+              • 培養液(150 µL)を採取し遠心集菌<br>
+              • <strong>クリアランス3 mm・低速10 µL/s</strong> でペレットを乱さず上清除去<br>
+              • BugBuster(40 µL)添加、5回懸濁、室温30分溶菌<br>
+              • 遠心後、<strong>可溶性上清(40 µL)</strong> をPCRプレートへ自動回収<br>
+              • 5x SDSバッファー(10 µL)添加、蓋105℃/95℃ 5分熱変性
+            </td>
+            <td>
+              • <strong>OT-2 本体</strong><br>
+              • <strong>Thermocycler Module GEN1</strong><br>
+              • (外部: 96ウェルプレート遠心機、SDS-PAGE電気泳動槽)
+            </td>
+            <td>
+              • P20 8ch GEN2<br>
+              • P300 8ch GEN2<br>
+              • 20 µL / 300 µL チップ
+            </td>
+            <td>
+              • BugBuster Protein Extraction Reagent<br>
+              • 5x SDSサンプルバッファー (還元剤含)<br>
+              • (下流: 磁気ビーズ, 洗浄・溶出バッファー)
+            </td>
+          </tr>
+
+          <!-- Protocol 7 -->
+          <tr>
+            <td>
+              <span class="proto-badge p-indigo">Protocol 7</span><br>
+              <strong>OD600 Reading Prep</strong><br>
+              <small>(OD600測定サンプル調製)</small>
+            </td>
+            <td>マイクロプレートリーダー用希釈サンプルの自動調製</td>
+            <td><strong>96 検体</strong><br><small>(ブランク含む)</small></td>
+            <td>
+              拘束時間: <span class="time-chip time-save">約 1〜2 分</span><br>
+              自動時間: <span class="time-chip time-passive">約 6〜8 分</span><br>
+              合計: <strong>約 8〜10 分</strong>
+            </td>
+            <td>
+              • 平底プレートに水/培地(90 µL)を自動分配<br>
+              • 菌体培養液を5回ピペッティング均一化<br>
+              • 菌液(10 µL)を添加・混合 (10倍希釈、総量100 µL)<br>
+              • ブランク列(A12-H12)には希釈液のみ100 µLを分注<br>
+              • マイクロプレートリーダーで吸光度高速測定
+            </td>
+            <td>
+              • <strong>OT-2 本体</strong><br>
+              • (外部: 96ウェルマイクロプレート吸光リーダー)
+            </td>
+            <td>
+              • P20 8ch GEN2<br>
+              • P300 8ch GEN2<br>
+              • 20 µL / 300 µL チップ
+            </td>
+            <td>
+              • 滅菌水 または 新鮮LB培地 (希釈用)
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SECTION 2: System Architecture & Figure 1 -->
+  <section class="section-box" id="architecture">
+    <div class="section-title-wrap">
+      <h2 class="section-title">
+        <span>⚙️</span>
+        <span>実験自動化に必要なシステムアーキテクチャ (Figure 1 詳解)</span>
+      </h2>
+      <span class="section-badge">Architecture & Pipeline Flow</span>
+    </div>
+
+    <!-- FIGURE 1 EMBED -->
+    <div class="figure-container">
+      <div class="figure-header">
+        <span>原著論文 Figure 1: APEX システムワークフロー & アーキテクチャ</span>
+        <span class="figure-badge">Main Paper Page 5</span>
+      </div>
+      <div class="figure-body">
+        <img src="images/fig1_apex_workflow_cropped.png" alt="APEX Workflow Figure 1" class="figure-img" style="max-height: 580px;">
+      </div>
+      <div class="figure-caption-box">
+        <div class="caption-title">🔍 Figure 1 の構造解説と技術的ポイント</div>
+        <p>
+          APEX（Automated Protein EXpression）は、実験者がPythonコードを書くことなく、表形式データ（JSON/CSV）からOpentrons OT-2の自動実行スクリプトを安全に生成・検証・実行できるコンテナ化パイプラインです。
+        </p>
+        <ul class="figure-points">
+          <li><strong>(a) パイプラインの4段階フロー:</strong> 
+            (1) ユーザーが機器設定（JSON）と分注マッピング（CSV）を定義 → 
+            (2) Nextflowパイプラインがマスターテンプレートから検証済みPythonスクリプトを自動生成し、Rスクリプトで試薬配置図を作成、PDFマニュアルを出力 → 
+            (3) Opentrons Appにスクリプトを読み込みデッキをセットアップ → 
+            (4) OT-2ロボットが実験を全自動実行。
+          </li>
+          <li><strong>(b) 4つのコアプロトコルの実験サイクル:</strong> 
+            Protocol 1 (形質転換) → Protocol 2 (選択寒天播種) → Protocol 3 (コロニー採取 & 前培養) → Protocol 4 (本培養植菌 & 発現誘導) が一貫して連携。
+          </li>
+          <li><strong>(c) Rによる視覚的ラボウェア配置図:</strong> 
+            作業者が迷わず試薬をセットできるよう、どのウェルにコンピテントセル、DNA、SOC培地を配置すべきかが色分けされた図として自動生成されます。
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- 4 Layers Description -->
+    <div class="arch-container">
+      <div class="arch-layer">
+        <div class="layer-header">
+          <div class="layer-number">Layer 1</div>
+          <div class="layer-title">ユーザー入力層<br><small style="font-size:0.8rem; font-weight:500; color:var(--slate-500);">(ノーコード設計)</small></div>
+        </div>
+        <div class="layer-body">
+          <div class="arch-item">
+            <div class="arch-item-title">📄 JSON 設定ファイル (config.json)</div>
+            <div class="arch-item-desc">
+              ロボットのハードウェア構成を定義。<br>
+              • ピペット型番 (P20 multi / P300 multi)<br>
+              • デッキスロット配置 (チップラック、リザーバー、プレート)<br>
+              • 物理パラメータ (寒天密度 0.911 g/cm³, 吸引速度 10 µL/s, ペレットクリアランス 3 mm)
+            </div>
+          </div>
+          <div class="arch-item">
+            <div class="arch-item-title">📊 CSV 実験データファイル (data.csv)</div>
+            <div class="arch-item-desc">
+              実験ごとのウェル単位分注指示を定義。<br>
+              • サンプルID / プラスミドID<br>
+              • 分注元ウェル (source_well) & 分注先ウェル (destination_well)<br>
+              • 移送容量 (µL) / 誘導剤濃度 (IPTG 0.1 mM等)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="arch-layer">
+        <div class="layer-header">
+          <div class="layer-number">Layer 2</div>
+          <div class="layer-title">パイプライン処理層<br><small style="font-size:0.8rem; font-weight:500; color:var(--slate-500);">(Nextflow + Docker)</small></div>
+        </div>
+        <div class="layer-body">
+          <div class="arch-item">
+            <div class="arch-item-title">🔄 Protocol Compiler (Python)</div>
+            <div class="arch-item-desc">
+              マスターテンプレートとJSON/CSVを結合し、構文・容量検証済みの実行用Pythonスクリプトを自動生成。
+            </div>
+          </div>
+          <div class="arch-item">
+            <div class="arch-item-title">🧪 Protocol Simulation Engine</div>
+            <div class="arch-item-desc">
+              実機実行前にOpentronsシミュレーターで全ピペッティング動作を仮想実行し、衝突やチップ不足を検知。
+            </div>
+          </div>
+          <div class="arch-item">
+            <div class="arch-item-title">📈 Labware Visualiser (R言語) & PDF生成</div>
+            <div class="arch-item-desc">
+              作業者が試薬を入れるべきウェル位置・色分けデッキ配置図（PNG）とセットアップ用PDF説明書を自動出力。
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 3: Technical Detail: Agar Calculation & Sampling (Figure 2) -->
+  <section class="section-box" id="sampling-tech">
+    <div class="section-title-wrap">
+      <h2 class="section-title">
+        <span>🎯</span>
+        <span>寒天高さモデリング & コロニーサンプリング技術 (Figure 2 詳解)</span>
+      </h2>
+      <span class="section-badge">Core Novelty: Physical Modeling</span>
+    </div>
+
+    <!-- FIGURE 2 EMBED -->
+    <div class="figure-container">
+      <div class="figure-header">
+        <span>原著論文 Figure 2: 寒天表面高さの計算モデル & コロニーサンプリング戦略</span>
+        <span class="figure-badge">Main Paper Page 7</span>
+      </div>
+      <div class="figure-body">
+        <img src="images/fig2_agar_sampling_cropped.png" alt="Agar calculation and sampling Figure 2" class="figure-img" style="max-height: 560px;">
+      </div>
+      <div class="figure-caption-box">
+        <div class="caption-title">🔍 Figure 2 の構造解説と技術的ポイント</div>
+        <p>
+          寒天プレートの自動ハンドリングにおける最大の課題は、手注ぎ寒天の厚みの個体差です。APEXは物理重量と幾何学モデルを用いた革新的なアプローチでこれを克服しました。
+        </p>
+        <ul class="figure-points">
+          <li><strong>(a) 寒天表面高さ（Height_agar）の計算モデル:</strong>
+            <code>Height_agar = Weight_agar / (Area_plate × Density_agar)</code><br>
+            プレートの空重量と注型後重量の差分（Weight_agar）、ベース面積（Area_plate = 幅×長さ）、およびLB寒天の密度（Density_agar ≈ 0.911 g/cm³）から、液面高さをミリ単位以下で正確に算出します。
+          </li>
+          <li><strong>(b) 3ステップのキャリブレーション体系:</strong>
+            (1) ラボウェア定義のウェル深度確認 → (2) 付属のJupyter Notebookを用いた寒天密度・高さの微調整 → (3) スポッティング高さ（寒天表面+0.5 mm）とサンプリング高さ（寒天貫通深度）の設定。
+          </li>
+          <li><strong>(c) 2種類のサンプリング戦略:</strong>
+            • <strong>Single pierce法:</strong> 高菌密度のスポット中央をチップ先端で1回突き刺して採取。<br>
+            • <strong>Spiral法:</strong> 低密度や菌の分布が不均一なスポットに対し、中心から外周へ滑らかなスパイラル軌道で走査して菌体を絡め取る。
+          </li>
+          <li><strong>(d) スパイラル軌道の制御パラメータ:</strong>
+            半径（Radius: 例 2.5 mm）、補間点数（Points: 25〜40点）、および回転数（Rotations: 1〜3周）をJSONで細かくチューニング可能。寒天を削り取ることなく菌体のみを確実に採取できます。
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION 4: Detailed Protocols with Deck Layout Figures -->
+  <section class="section-box" id="details">
+    <div class="section-title-wrap">
+      <h2 class="section-title">
+        <span>📋</span>
+        <span>全7自動化プロトコル 詳細スペック & OT-2デッキ配置図</span>
+      </h2>
+      <span class="section-badge">Step-by-Step with Deck Diagrams</span>
+    </div>
+    <p style="font-size: 0.9rem; color: var(--slate-600); margin-bottom: 24px;">
+      論文プロトコルマニュアル（S2）に掲載された各プロトコルの公式OT-2デッキ配置図とともに、動作フローと設定パラメータを詳述します。
+    </p>
+
+    <div class="protocol-cards-grid">
+
+      <!-- P1 Card with Deck Layout -->
+      <div class="detail-card c-p1">
+        <div class="card-top">
+          <div class="card-title-group">
+            <span class="proto-badge p-blue">Protocol 1</span>
+            <h3 class="card-h3">Heat Shock Transformation (ヒートショック形質転換)</h3>
+          </div>
+          <div class="card-pill-row">
+            <span class="time-chip time-save">Active 0.5分 (98%削減)</span>
+            <span class="time-chip time-passive">Passive 109.4分</span>
+            <span class="time-chip" style="background:#e2e8f0; color:#334155;">検体数: 96</span>
+          </div>
+        </div>
+        <div class="card-main">
+          <div>
+            <div class="detail-section-title">📌 何をしたのか（自動化ステップの流れ）</div>
+            <ul class="action-steps-list">
+              <li class="action-step-item">
+                <span class="step-index-badge">1</span>
+                <div><strong>コンピテントセルの分注:</strong> 冷却されたCells Plate(スロット4)から、サーモサイクラー上の予冷PCRプレートへ10 µL/wellを分注。最小吐出量分の余剰吸引で高精度化。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">2</span>
+                <div><strong>プラスミドDNAの添加 & 混合:</strong> DNA Plate(スロット5)から各ウェルへ1 µLを添加し緩やかに1回ミキシング。チップ先端の液滴を再降下で確実にウェル内に移送。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">3</span>
+                <div><strong>完全自動ヒートショック:</strong> サーモサイクラー蓋が密閉。4℃(30分)冷却 → 42℃(30秒)熱ショック → 4℃(2分)急冷を完全無人で実行。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">4</span>
+                <div><strong>SOC添加 & 復帰培養:</strong> 蓋が開き、リザーバーからSOC培地50 µLを分注・3回懸濁。再度密閉し37℃で60分間振盪なしでインキュベート。</div>
+              </li>
+            </ul>
+
+            <div class="specs-box" style="margin-top: 16px;">
+              <div class="detail-section-title">⚙️ 機材・試薬・制御パラメータ</div>
+              <div class="spec-row"><span class="spec-key">Opentronsモジュール:</span><span class="spec-val">Thermocycler Module GEN1</span></div>
+              <div class="spec-row"><span class="spec-key">ピペット & チップ:</span><span class="spec-val">P20 8ch (スロット6) + P300 8ch (スロット9)</span></div>
+              <div class="spec-row"><span class="spec-key">使用試薬:</span><span class="spec-val">ケミカルコンピテントセル, プラスミド, SOC培地</span></div>
+              <div class="spec-row"><span class="spec-key">キーパラメータ:</span><span class="spec-val"><span class="code-mini">cells_vol: 10µL</span> <span class="code-mini">dna_vol: 1µL</span> <span class="code-mini">heat_shock: 42℃ 30s</span></span></div>
+            </div>
+          </div>
+
+          <div class="deck-figure-wrap">
+            <div style="font-size:0.78rem; font-weight:700; color:var(--slate-700); margin-bottom:6px;">
+              🗺️ Protocol 1 OT-2 デッキ配置図 (Figure 2 in S2)
+            </div>
+            <img src="images/deck_layout_p1_heatshock.png" alt="Deck Layout Protocol 1" class="deck-img">
+            <div style="font-size:0.74rem; color:var(--slate-500); margin-top:6px; line-height:1.4;">
+              TC(スロット7,8,10,11)に形質転換プレート、Slot 4にコンピセル、Slot 5にDNA、Slot 3にSOC培地リザーバーを配置。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- P2 Card with Deck Layout -->
+      <div class="detail-card c-p2">
+        <div class="card-top">
+          <div class="card-title-group">
+            <span class="proto-badge p-teal">Protocol 2</span>
+            <h3 class="card-h3">Selective Plating (寒天選択培地への播種)</h3>
+          </div>
+          <div class="card-pill-row">
+            <span class="time-chip time-save">Active 2.0分 (90%削減)</span>
+            <span class="time-chip time-passive">Passive 8.3分</span>
+            <span class="time-chip" style="background:#e2e8f0; color:#334155;">検体数: 96スポット</span>
+          </div>
+        </div>
+        <div class="card-main">
+          <div>
+            <div class="detail-section-title">📌 何をしたのか（自動化ステップの流れ）</div>
+            <ul class="action-steps-list">
+              <li class="action-step-item">
+                <span class="step-index-badge">1</span>
+                <div><strong>寒天厚みの幾何学的算出:</strong> プレート空重量と注型後重量の差分、プレート面積、寒天密度(0.911 g/cm³)から液面高さをミリ単位以下で自動算出。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">2</span>
+                <div><strong>菌液の吸引:</strong> 形質転換後の菌液を20 µLで3回懸濁後、5 µL（+予備吸引1 µL）を吸引。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">3</span>
+                <div><strong>精密ソフトスポッティング:</strong> チップ先端を寒天表面からわずか+0.5 mm（Spotting height）に配置。ブローアウトをあえて行わず、吐出後5秒静置して毛細管現象で寒天上に綺麗に着地。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">4</span>
+                <div><strong>静置培養:</strong> 乾燥確認後、外部37℃インキュベーターで12〜18時間培養し単一コロニー群を形成。</div>
+              </li>
+            </ul>
+
+            <div class="specs-box" style="margin-top: 16px;">
+              <div class="detail-section-title">⚙️ 機材・試薬・制御パラメータ</div>
+              <div class="spec-row"><span class="spec-key">Opentronsモジュール:</span><span class="spec-val">なし（OT-2本体デッキ上）</span></div>
+              <div class="spec-row"><span class="spec-key">ピペット & チップ:</span><span class="spec-val">P20 8ch (スロット2) + Opentrons 20 µLチップ</span></div>
+              <div class="spec-row"><span class="spec-key">使用試薬:</span><span class="spec-val">1.5% LB寒天培地 + 抗生物質(Amp, Kan, Cm, Zeo)</span></div>
+              <div class="spec-row"><span class="spec-key">キーパラメータ:</span><span class="spec-val"><span class="code-mini">spotting_height: +0.5mm</span> <span class="code-mini">agar_density: 0.911</span> <span class="code-mini">delay: 5s</span></span></div>
+            </div>
+          </div>
+
+          <div class="deck-figure-wrap">
+            <div style="font-size:0.78rem; font-weight:700; color:var(--slate-700); margin-bottom:6px;">
+              🗺️ Protocol 2 OT-2 デッキ配置図 (Figure 3 in S2)
+            </div>
+            <img src="images/deck_layout_p2_selective_plating.png" alt="Deck Layout Protocol 2" class="deck-img">
+            <div style="font-size:0.74rem; color:var(--slate-500); margin-top:6px; line-height:1.4;">
+              Slot 1にNunc OmniTray寒天プレート、Slot 2に20 µLチップラック、TC上に形質転換済みプレートを配置。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- P3 Card with Deck Layout -->
+      <div class="detail-card c-p3">
+        <div class="card-top">
+          <div class="card-title-group">
+            <span class="proto-badge p-amber">Protocol 3</span>
+            <h3 class="card-h3">Colony Sampling (コロニー採取 & 植菌)</h3>
+          </div>
+          <div class="card-pill-row">
+            <span class="time-chip time-save">Active 2.0分 (89%削減)</span>
+            <span class="time-chip time-passive">Passive 10.9分</span>
+            <span class="time-chip" style="background:#e2e8f0; color:#334155;">検体数: 96コロニー</span>
+          </div>
+        </div>
+        <div class="card-main">
+          <div>
+            <div class="detail-section-title">📌 何をしたのか（自動化ステップの流れ）</div>
+            <ul class="action-steps-list">
+              <li class="action-step-item">
+                <span class="step-index-badge">1</span>
+                <div><strong>液体培地の自動分配:</strong> リザーバーから96ディープウェルプレートへ新鮮な選択LB培地を分注。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">2</span>
+                <div><strong>画像認識不要のコロニー採取:</strong> コロニー密度に応じてサンプリング戦略を実行。<br>
+                • <strong>Single Pierce法:</strong> 高密度スポット中心をチップ先端で1回貫通刺突。<br>
+                • <strong>Spiral法:</strong> 低密度用。中心から外周へ滑らかな渦巻き（半径2.5mm, 3回転）を描いて低速スキャン採取。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">3</span>
+                <div><strong>ディープウェルへの植菌:</strong> ディープウェル内の培地へチップを浸漬し、半量ピペッティング混合（2回）で均一懸濁。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">4</span>
+                <div><strong>前培養振盪:</strong> 37℃振盪インキュベーターで一晩前培養（Seed culture）。</div>
+              </li>
+            </ul>
+
+            <div class="specs-box" style="margin-top: 16px;">
+              <div class="detail-section-title">⚙️ 機材・試薬・制御パラメータ</div>
+              <div class="spec-row"><span class="spec-key">Opentronsモジュール:</span><span class="spec-val">なし（OT-2本体デッキ上）</span></div>
+              <div class="spec-row"><span class="spec-key">ピペット & チップ:</span><span class="spec-val">P20 8ch (採取) + P300 8ch (培地)</span></div>
+              <div class="spec-row"><span class="spec-key">使用試薬:</span><span class="spec-val">選択LB液体培地</span></div>
+              <div class="spec-row"><span class="spec-key">キーパラメータ:</span><span class="spec-val"><span class="code-mini">method: pierce/spiral</span> <span class="code-mini">radius: 2.5mm</span> <span class="code-mini">rotations: 3</span></span></div>
+            </div>
+          </div>
+
+          <div class="deck-figure-wrap">
+            <div style="font-size:0.78rem; font-weight:700; color:var(--slate-700); margin-bottom:6px;">
+              🗺️ Protocol 3 OT-2 デッキ配置図 (Figure 4 in S2)
+            </div>
+            <img src="images/deck_layout_p3_colony_sampling.png" alt="Deck Layout Protocol 3" class="deck-img">
+            <div style="font-size:0.74rem; color:var(--slate-500); margin-top:6px; line-height:1.4;">
+              Slot 1に寒天プレート、Slot 2に前培養用96ディープウェル(2.4mL)、Slot 3に培地リザーバーを配置。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- P4 Card with Deck Layout -->
+      <div class="detail-card c-p4">
+        <div class="card-top">
+          <div class="card-title-group">
+            <span class="proto-badge p-green">Protocol 4</span>
+            <h3 class="card-h3">Protein Expression Induction (本培養植菌 & 発現誘導)</h3>
+          </div>
+          <div class="card-pill-row">
+            <span class="time-chip time-save">Active 4.0分 (87%削減)</span>
+            <span class="time-chip time-passive">Passive 105.9分</span>
+            <span class="time-chip" style="background:#e2e8f0; color:#334155;">検体数: 96培養系</span>
+          </div>
+        </div>
+        <div class="card-main">
+          <div>
+            <div class="detail-section-title">📌 何をしたのか（自動化ステップの流れ）</div>
+            <ul class="action-steps-list">
+              <li class="action-step-item">
+                <span class="step-index-badge">1</span>
+                <div><strong>本培養用新鮮培地の分注:</strong> 発現用96ディープウェルプレートへ新鮮LB培地（500 µLまたは1000 µL/well）を自動分注。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">2</span>
+                <div><strong>前培養液の植菌:</strong> 一晩前培養液を5回ピペッティングして均一化し、5 µLを本培養プレートへ植菌・混合。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">3</span>
+                <div><strong>対数増殖期までの培養待機:</strong> プロトコルが一時停止。37℃振盪培養機でOD600 約0.6〜0.8まで増殖。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">4</span>
+                <div><strong>誘導剤の自動添加 & 発現培養:</strong> デッキ再セット後に再開。リザーバーからIPTG(0.1 mM)またはL-アラビノース(1.33 mM)を5 µL自動添加・混合。終了後20℃で18時間発現培養。</div>
+              </li>
+            </ul>
+
+            <div class="specs-box" style="margin-top: 16px;">
+              <div class="detail-section-title">⚙️ 機材・試薬・制御パラメータ</div>
+              <div class="spec-row"><span class="spec-key">Opentronsモジュール:</span><span class="spec-val">なし（OT-2本体デッキ上）</span></div>
+              <div class="spec-row"><span class="spec-key">ピペット & チップ:</span><span class="spec-val">P20 8ch (植菌・誘導) + P300 8ch (培地)</span></div>
+              <div class="spec-row"><span class="spec-key">使用試薬:</span><span class="spec-val">新鮮LB培地, 0.1 mM IPTG / 1.33 mM L-Arabinose</span></div>
+              <div class="spec-row"><span class="spec-key">キーパラメータ:</span><span class="spec-val"><span class="code-mini">culture_vol: 5µL</span> <span class="code-mini">media_vol: 500/1000µL</span> <span class="code-mini">inducer_vol: 5µL</span></span></div>
+            </div>
+          </div>
+
+          <div class="deck-figure-wrap">
+            <div style="font-size:0.78rem; font-weight:700; color:var(--slate-700); margin-bottom:6px;">
+              🗺️ Protocol 4 OT-2 デッキ配置図 (Figure 5 in S2)
+            </div>
+            <img src="images/deck_layout_p4_expression_induction.png" alt="Deck Layout Protocol 4" class="deck-img">
+            <div style="font-size:0.74rem; color:var(--slate-500); margin-top:6px; line-height:1.4;">
+              Slot 1に前培養プレート、Slot 2に発現用ディープウェルプレート、Slot 3に培地＆誘導剤リザーバーを配置。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- P5 Card with Deck Layout & Gel Figure -->
+      <div class="detail-card c-p5">
+        <div class="card-top">
+          <div class="card-title-group">
+            <span class="proto-badge p-purple">Protocol 5</span>
+            <h3 class="card-h3">Colony PCR Sample Preparation (コロニーPCR調製)</h3>
+          </div>
+          <div class="card-pill-row">
+            <span class="time-chip time-save">Active 5〜10分</span>
+            <span class="time-chip time-passive">Passive 75〜90分</span>
+            <span class="time-chip" style="background:#e2e8f0; color:#334155;">検体数: 24〜96</span>
+          </div>
+        </div>
+        <div class="card-main">
+          <div>
+            <div class="detail-section-title">📌 何をしたのか（自動化ステップの流れ）</div>
+            <ul class="action-steps-list">
+              <li class="action-step-item">
+                <span class="step-index-badge">1</span>
+                <div><strong>滅菌水の分配:</strong> 96ウェルPCRプレートへ滅菌水11.5 µLを自動分配。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">2</span>
+                <div><strong>コロニー懸濁:</strong> プロトコル一時停止時に選抜コロニーを懸濁。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">3</span>
+                <div><strong>PCRマスターミックスの自動添加:</strong> OneTaq Quick-Load 2X Master Mix + プライマー混液(13.5 µL)を自動分注し4回混合。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">4</span>
+                <div><strong>オンデッキPCR増幅:</strong> サーモサイクラー密閉。初期変性94℃ 2分 → [94℃ 30s / 52℃ 30s / 68℃ 45s] × 30回 → 最終伸長68℃ 5分を実行。ゲル電気泳動でインサート長（sfGFP 711 bp等）を確認。</div>
+              </li>
+            </ul>
+
+            <div class="specs-box" style="margin-top: 16px;">
+              <div class="detail-section-title">⚙️ 機材・試薬・制御パラメータ</div>
+              <div class="spec-row"><span class="spec-key">Opentronsモジュール:</span><span class="spec-val">Thermocycler Module GEN1</span></div>
+              <div class="spec-row"><span class="spec-key">ピペット & チップ:</span><span class="spec-val">P20 8ch + P300 8ch + 20 µL/300 µLチップ</span></div>
+              <div class="spec-row"><span class="spec-key">使用試薬:</span><span class="spec-val">滅菌水, NEB OneTaq 2X Master Mix, 特異的プライマー対</span></div>
+              <div class="spec-row"><span class="spec-key">キーパラメータ:</span><span class="spec-val"><span class="code-mini">water_vol: 11.5µL</span> <span class="code-mini">mm_vol: 13.5µL</span> <span class="code-mini">cycles: 30</span></span></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="deck-figure-wrap">
+              <div style="font-size:0.78rem; font-weight:700; color:var(--slate-700); margin-bottom:6px;">
+                🗺️ Protocol 5 OT-2 デッキ配置図 (Figure 6 in S2)
+              </div>
+              <img src="images/deck_layout_p5_colony_pcr.png" alt="Deck Layout Protocol 5" class="deck-img">
+            </div>
+
+            <!-- Gel result image embed -->
+            <div class="deck-figure-wrap" style="margin-top:14px;">
+              <div style="font-size:0.78rem; font-weight:700; color:var(--slate-700); margin-bottom:6px;">
+                🧬 Figure S3: コロニーPCR増幅産物のアガロースゲル電気泳動写真
+              </div>
+              <img src="images/figS3_colony_pcr_gel_cropped.png" alt="Colony PCR Gel" class="deck-img">
+              <div style="font-size:0.72rem; color:var(--slate-500); margin-top:4px; line-height:1.4;">
+                BL21(DE3)形質転換体24クローン（Lanes 1-24）全レーンでsfGFPインサート長（711 bp）の一致を確認。
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- P6 Card with Deck Layout -->
+      <div class="detail-card c-p6">
+        <div class="card-top">
+          <div class="card-title-group">
+            <span class="proto-badge p-rose">Protocol 6</span>
+            <h3 class="card-h3">SDS-PAGE Sample Prep & Cell Lysis (菌体破砕・可溶化・熱変性)</h3>
+          </div>
+          <div class="card-pill-row">
+            <span class="time-chip time-save">Active 5〜8分</span>
+            <span class="time-chip time-passive">Passive 45〜55分</span>
+            <span class="time-chip" style="background:#e2e8f0; color:#334155;">検体数: 96 (精製原料)</span>
+          </div>
+        </div>
+        <div class="card-main">
+          <div>
+            <div class="detail-section-title">📌 何をしたのか（自動化ステップの流れ）</div>
+            <ul class="action-steps-list">
+              <li class="action-step-item">
+                <span class="step-index-badge">1</span>
+                <div><strong>菌液サンプリング & 遠心集菌:</strong> 発現培養プレートから150 µL採取し、外部プレート遠心機（3,884 ×g, 10分）で菌体をペレット化。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">2</span>
+                <div><strong>ペレット非崩壊上清吸引:</strong> デッキ復帰後、<strong>底面クリアランス 3.0 mm</strong>、超低速（<strong>10 µL/s</strong>）でペレットを吸わずに上清のみを優しく除去・廃棄。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">3</span>
+                <div><strong>細胞溶解 (Lysis):</strong> BugBuster溶菌液(40 µL)を添加し5回ピペッティングで完全懸濁。室温30分インキュベート後、遠心機で不溶性残渣を沈降。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">4</span>
+                <div><strong>可溶性画分の回収 & 熱変性:</strong> 可溶性タンパク質上清(40 µL)をサーモサイクラー上のPCRプレートへ移送。5x SDSバッファー(10 µL)を混合し、蓋105℃/95℃ 5分熱変性。（※この上清はそのまま磁気ビーズ精製にも直結）</div>
+              </li>
+            </ul>
+
+            <div class="specs-box" style="margin-top: 16px;">
+              <div class="detail-section-title">⚙️ 機材・試薬・制御パラメータ</div>
+              <div class="spec-row"><span class="spec-key">Opentronsモジュール:</span><span class="spec-val">Thermocycler Module GEN1</span></div>
+              <div class="spec-row"><span class="spec-key">ピペット & チップ:</span><span class="spec-val">P20 8ch + P300 8ch + 20 µL/300 µLチップ</span></div>
+              <div class="spec-row"><span class="spec-key">使用試薬:</span><span class="spec-val">BugBuster溶菌試薬, 5x SDSサンプルバッファー</span></div>
+              <div class="spec-row"><span class="spec-key">キーパラメータ:</span><span class="spec-val"><span class="code-mini">clearance: 3.0mm</span> <span class="code-mini">flow_rate: 10µL/s</span> <span class="code-mini">denature: 95℃ 5m</span></span></div>
+            </div>
+          </div>
+
+          <div class="deck-figure-wrap">
+            <div style="font-size:0.78rem; font-weight:700; color:var(--slate-700); margin-bottom:6px;">
+              🗺️ Protocol 6 OT-2 デッキ配置図 (Figure 7 in S2)
+            </div>
+            <img src="images/deck_layout_p6_sds_lysis.png" alt="Deck Layout Protocol 6" class="deck-img">
+            <div style="font-size:0.74rem; color:var(--slate-500); margin-top:6px; line-height:1.4;">
+              Slot 1に培養ディープウェル、Slot 2にBugBuster/SDSリザーバー、Slot 3に溶菌プレート、TC上に熱変性用プレートを配置。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- P7 Card with Deck Layout -->
+      <div class="detail-card c-p7">
+        <div class="card-top">
+          <div class="card-title-group">
+            <span class="proto-badge p-indigo">Protocol 7</span>
+            <h3 class="card-h3">OD600 Reading Sample Preparation (OD600測定サンプル調製)</h3>
+          </div>
+          <div class="card-pill-row">
+            <span class="time-chip time-save">Active 1〜2分</span>
+            <span class="time-chip time-passive">Passive 6〜8分</span>
+            <span class="time-chip" style="background:#e2e8f0; color:#334155;">検体数: 96 (ブランク含)</span>
+          </div>
+        </div>
+        <div class="card-main">
+          <div>
+            <div class="detail-section-title">📌 何をしたのか（自動化ステップの流れ）</div>
+            <ul class="action-steps-list">
+              <li class="action-step-item">
+                <span class="step-index-badge">1</span>
+                <div><strong>希釈液の分配:</strong> Corning平底プレートに水/培地90 µLを自動分注。ブランク列（A12-H12）には100 µLを分注。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">2</span>
+                <div><strong>菌液の均一懸濁:</strong> ディープウェルの菌液を5回ピペッティング（250 µL）して均一化。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">3</span>
+                <div><strong>菌液の添加・混合:</strong> 菌液10 µLを測定プレートへ分注・混合（10倍希釈、総量100 µL）。</div>
+              </li>
+              <li class="action-step-item">
+                <span class="step-index-badge">4</span>
+                <div><strong>プレートリーダー測定:</strong> 96ウェル吸光リーダーでOD600を高速測定し菌体密度を定量。</div>
+              </li>
+            </ul>
+
+            <div class="specs-box" style="margin-top: 16px;">
+              <div class="detail-section-title">⚙️ 機材・試薬・制御パラメータ</div>
+              <div class="spec-row"><span class="spec-key">Opentronsモジュール:</span><span class="spec-val">なし（OT-2本体デッキ上）</span></div>
+              <div class="spec-row"><span class="spec-key">ピペット & チップ:</span><span class="spec-val">P20 8ch + P300 8ch + 20 µL/300 µLチップ</span></div>
+              <div class="spec-row"><span class="spec-key">使用試薬:</span><span class="spec-val">滅菌水 または 新鮮LB培地</span></div>
+              <div class="spec-row"><span class="spec-key">キーパラメータ:</span><span class="spec-val"><span class="code-mini">diluent_vol: 90µL</span> <span class="code-mini">culture_vol: 10µL</span> <span class="code-mini">dilution: 10x</span></span></div>
+            </div>
+          </div>
+
+          <div class="deck-figure-wrap">
+            <div style="font-size:0.78rem; font-weight:700; color:var(--slate-700); margin-bottom:6px;">
+              🗺️ Protocol 7 OT-2 デッキ配置図 (Figure 8 in S2)
+            </div>
+            <img src="images/deck_layout_p7_od600.png" alt="Deck Layout Protocol 7" class="deck-img">
+            <div style="font-size:0.74rem; color:var(--slate-500); margin-top:6px; line-height:1.4;">
+              Slot 1に希釈液リザーバー、Slot 2にCorning 360 µL平底測定プレート、Slot 3に培養ディープウェルを配置。
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- SECTION 5: Experimental Validation Data (Figures S1, 5, 6) -->
+  <section class="section-box" id="validation">
+    <div class="section-title-wrap">
+      <h2 class="section-title">
+        <span>📈</span>
+        <span>実証実験データ & 性能評価 (Figure S1, 5, 6 詳解)</span>
+      </h2>
+      <span class="section-badge">Time & Biological Performance</span>
+    </div>
+
+    <!-- FIGURE S1 EMBED: Time comparison -->
+    <div class="figure-container">
+      <div class="figure-header">
+        <span>原著補足情報 Figure S1: 96サンプル処理時の作業者拘束時間 (Active vs Passive) 比較</span>
+        <span class="figure-badge">SI1 Page 5</span>
+      </div>
+      <div class="figure-body">
+        <img src="images/figS1_time_comparison_cropped.png" alt="Figure S1 Time Comparison" class="figure-img" style="max-height: 400px;">
+      </div>
+      <div class="figure-caption-box">
+        <div class="caption-title">🔍 Figure S1 のデータ分析と意義</div>
+        <p>
+          熟練研究者がマルチチャンネルピペットを用いて手動（Manual）で行った作業と、APEX自動化による時間を96サンプル規模で直接比較した実測グラフです。
+        </p>
+        <ul class="figure-points">
+          <li><strong>作業者拘束時間（Active Operator Time）の激減:</strong> 
+            手作業が必要な時間は赤色バーで示され、P1（形質転換）では手動25.8分から<strong>わずか0.5分</strong>へ、P2（播種）は19.6分から<strong>2.0分</strong>へ、P3（採取）は18.6分から<strong>2.0分</strong>へ、P4（誘導）は30.5分から<strong>4.0分</strong>へと激減しました。
+          </li>
+          <li><strong>自動処理時間（Passive Time）への置換:</strong> 
+            青色バーで示される待ち時間・ロボット自動運転時間の間、研究者は完全に拘束から解放され、並行して他の実験やデータ解析を行うことが可能になります。
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- FIGURE 5 EMBED: Colony Sampling Evaluation -->
+    <div class="figure-container">
+      <div class="figure-header">
+        <span>原著論文 Figure 5: 自動コロニーサンプリング手法の評価（sfGFP発現 & 蛍光追跡）</span>
+        <span class="figure-badge">Main Paper Page 13</span>
+      </div>
+      <div class="figure-body">
+        <img src="images/fig5_colony_sampling_eval_cropped.png" alt="Figure 5 Colony sampling evaluation" class="figure-img" style="max-height: 520px;">
+      </div>
+      <div class="figure-caption-box">
+        <div class="caption-title">🔍 Figure 5 のデータ分析と意義</div>
+        <p>
+          Single pierce法とSpiral法の2種類のサンプリング戦略を用いて採取されたクローンの増殖性と発現均一性を評価したデータです。
+        </p>
+        <ul class="figure-points">
+          <li><strong>(a) 96グリッド寒天プレート:</strong> 
+            Columns 1-4は高密度コロニー（希釈なし）、Columns 5-8は5倍希釈による低密度コロニー。Column 9はポジティブコントロール。
+          </li>
+          <li><strong>(b) 採取後の一晩培養OD600比較:</strong> 
+            Single pierce法（高密度）とSpiral法（低密度）のいずれで採取した菌体も、96ウェル全体で極めて均一かつ強固な増殖（OD600 ≈ 6〜8）を示しました。
+          </li>
+          <li><strong>(c) L-アラビノース誘導後のsfGFP蛍光強度追跡:</strong> 
+            誘導後240分にわたる規格化蛍光強度（AFU/OD600）の追跡により、チップで物理採取した非単離クローン群であっても、手動ピッキングと同等の高い発現再現性が得られることが実証されました。
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- FIGURE 6 EMBED: Protein Expression & SDS-PAGE Gel -->
+    <div class="figure-container">
+      <div class="figure-header">
+        <span>原著論文 Figure 6: 手動 vs APEXの多様なタンパク質発現量 & SDS-PAGEゲル解析</span>
+        <span class="figure-badge">Main Paper Page 14</span>
+      </div>
+      <div class="figure-body">
+        <img src="images/fig6_expression_sdspage_cropped.png" alt="Figure 6 Expression and SDS-PAGE" class="figure-img" style="max-height: 500px;">
+      </div>
+      <div class="figure-caption-box">
+        <div class="caption-title">🔍 Figure 6 のデータ分析と意義</div>
+        <p>
+          29 kDaから222 kDaに及ぶサイズ・起源の異なる3種類の組換え酵素について、APEX自動化と手動作業での菌体密度および可溶性発現画分のSDS-PAGE解析を比較した結果です。
+        </p>
+        <ul class="figure-points">
+          <li><strong>(a-b) 培養液量別の菌体密度（OD600）比較:</strong> 
+            0.5 mLおよび1.0 mLの96ディープウェル培養において、APEX（a）と手動（b）で同等の生育を確認。
+          </li>
+          <li><strong>(c-d) 可溶性画分のSDS-PAGE電気泳動バンド写真:</strong> 
+            • <strong>pEX04 (Sfp):</strong> 29 kDa（*B. subtilis* 由来トランスフェラーゼ）<br>
+            • <strong>pEX09 (CVTA):</strong> 49 kDa（*C. violaceum* 由来トランスアミナーゼ）<br>
+            • <strong>pEX07 (PKS):</strong> <strong>222 kDa</strong>（*M. tuberculosis* 由来 巨大ポリケチド合成酵素）<br>
+            白三角で示される目的タンパク質バンドは、APEX（c: Protocol 6自動調製）と手動（d: 手作業調製）の間で完全に一致し、巨大タンパク質に至るまで優れた可溶性発現が証明されました。
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- FIGURE S2 EMBED: All Deck Layouts -->
+    <div class="figure-container">
+      <div class="figure-header">
+        <span>原著補足情報 Figure S2: 全プロトコル (a〜g) のOT-2デッキレイアウト一覧統合図</span>
+        <span class="figure-badge">SI1 Page 7</span>
+      </div>
+      <div class="figure-body">
+        <img src="images/figS2_deck_layouts_all_cropped.png" alt="Figure S2 All Deck Layouts" class="figure-img" style="max-height: 560px;">
+      </div>
+      <div class="figure-caption-box">
+        <div class="caption-title">🔍 Figure S2 の全体デッキ構成一覧</div>
+        <p>
+          Protocol 1からProtocol 7までの全デッキ配置（a〜g）が俯瞰できるマスターリファレンスです。サーモサイクラー（スロット7,8,10,11占有）の活用法や、12チャンネルリザーバー、各チップラックの配置パターンが一目で確認できます。
+        </p>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- SECTION 6: Downstream Purification Integration -->
+  <section class="section-box" id="purification">
+    <div class="section-title-wrap">
+      <h2 class="section-title">
+        <span>⚗️</span>
+        <span>下流のタンパク質自動精製（Purification）へのシームレス拡張</span>
+      </h2>
+      <span class="section-badge">Magnetic Module Workflow</span>
+    </div>
+    <p style="font-size: 0.9rem; color: var(--slate-600); margin-bottom: 20px;">
+      文献（Kasprzyk et al.）のProtocol 6によって抽出される「可溶性ライセート（Cell-free extract）」は、Opentronsの別売モジュールである<strong>「Magnetic Module（磁気モジュール）」</strong>を組み合わせることで、完全自動のアフィニティ磁気ビーズ精製へとそのまま接続できます。
+    </p>
+
+    <div class="purif-schema-grid">
+      <div class="purif-step-card">
+        <span class="purif-step-num">Step 1 (APEX P6)</span>
+        <h4 class="purif-step-title">可溶性抽出液の調製</h4>
+        <p class="purif-step-text">
+          菌体破砕液を遠心分離し、可溶性タンパク質を含む上清（40〜100 µL）を96ウェル精製プレートへ自動移送。
+        </p>
+      </div>
+
+      <div class="purif-step-card">
+        <span class="purif-step-num">Step 2 (Binding)</span>
+        <h4 class="purif-step-title">磁気ビーズ結合</h4>
+        <p class="purif-step-text">
+          Ni-NTA Magnetic Beads等を添加。ピペッティング攪拌によりHisタグ標的タンパク質を特異的に吸着。
+        </p>
+      </div>
+
+      <div class="purif-step-card">
+        <span class="purif-step-num">Step 3 (Washing)</span>
+        <h4 class="purif-step-title">磁気捕捉 & 洗浄</h4>
+        <p class="purif-step-text">
+          Magnetic Moduleでビーズを捕捉固定。上清排出後、20〜30 mM イミダゾール含有バッファーで2〜3回高速洗浄。
+        </p>
+      </div>
+
+      <div class="purif-step-card">
+        <span class="purif-step-num">Step 4 (Elution)</span>
+        <h4 class="purif-step-title">高純度溶出 & 回収</h4>
+        <p class="purif-step-text">
+          250〜500 mM イミダゾール溶出液を加え目的タンパク質を解離。高純度タンパク質溶液をクリーンな96ウェルへ回収。
+        </p>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>
