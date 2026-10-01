@@ -1746,6 +1746,161 @@
     </div>
   </section>
 
+  <!-- SECTION 7: Complete List of Opentrons Hardware & Modules Used in the Paper -->
+  <section class="section-box" id="opentrons-modules">
+    <div class="section-title-wrap">
+      <h2 class="section-title">
+        <span>🧩</span>
+        <span>本論文で使用されたOpentrons製品・モジュール全一覧</span>
+      </h2>
+      <span class="section-badge">Opentrons Ecosystem & Hardware Checklist</span>
+    </div>
+    <p style="font-size: 0.92rem; color: var(--slate-600); margin-bottom: 20px;">
+      原著論文（Kasprzyk et al., 2025）および補足情報（Table S2）において、実験検証およびAPEXパイプラインの構築に実際に使用されたOpentrons社製のモジュール、ロボット本体、ピペット、およびラボウェアの完全な一覧です。
+    </p>
+
+    <div class="grid-2" style="margin-bottom: 24px;">
+      <!-- Module 1: Thermocycler -->
+      <div class="info-card" style="border-left: 5px solid #6d28d9; background: white;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+          <h3 style="font-size: 1.1rem; font-weight: 800; color: #4c1d95;">
+            🌡️ Thermocycler Module GEN1
+          </h3>
+          <span class="code-mini" style="color: #6d28d9; border-color: #ddd6fe; background: #f5f3ff;">型番: 999-00001</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--slate-600); line-height: 1.5; margin-bottom: 12px;">
+          <strong>論文内での役割:</strong> APEX実験の中核を担うオンデッキ温度制御・PCRモジュール。デッキのスロット7, 8, 10, 11を占有。自動開閉リッド（最高105℃）と精密ペルチェ素子（4℃〜99℃）を搭載。
+        </p>
+        <div style="background: #f8fafc; border-radius: 6px; padding: 10px; font-size: 0.8rem; border: 1px solid var(--slate-200);">
+          <strong>実稼働プロトコル:</strong>
+          <ul style="margin: 4px 0 0 16px; color: var(--slate-700); line-height: 1.5;">
+            <li><strong>Protocol 1 (形質転換):</strong> 4℃予冷(30分) → 42℃熱ショック(30秒) → 4℃急冷(2分) → 37℃復帰培養(60分)の全自動実行。</li>
+            <li><strong>Protocol 5 (コロニーPCR):</strong> 94℃初期変性 → 30サイクルPCR増幅 → 68℃最終伸長を無人運転。</li>
+            <li><strong>Protocol 6 (SDS熱変性):</strong> リッドを105℃に加熱密閉し、抽出可溶性タンパク質を95℃で5分間加熱変性。</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Robot: OT-2 -->
+      <div class="info-card" style="border-left: 5px solid var(--primary); background: white;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+          <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--primary-dark);">
+            🤖 OT-2 Liquid Handling Robot
+          </h3>
+          <span class="code-mini" style="color: var(--primary); border-color: #bfdbfe; background: #eff6ff;">型番: 999-00111</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--slate-600); line-height: 1.5; margin-bottom: 12px;">
+          <strong>論文内での役割:</strong> 3軸（X/Y/Z）直動高精度リキッドハンドリングロボット本体。11個のデッキスロット＋固定廃棄トレイ（Slot 12）を備え、デュアルマウントでマルチチャンネルピペットを同時に制御。全7プロトコル（Protocol 1〜7）を実行。
+        </p>
+        <div style="background: #f8fafc; border-radius: 6px; padding: 10px; font-size: 0.8rem; border: 1px solid var(--slate-200);">
+          <strong>制御機能:</strong>
+          <ul style="margin: 4px 0 0 16px; color: var(--slate-700); line-height: 1.5;">
+            <li>Opentrons Python API v2による完全プログラム制御（Nextflow自動生成スクリプト）</li>
+            <li>寒天表面のミリ下クリアランス制御（Spotting: +0.5 mm）</li>
+            <li>ペレット非崩壊上清吸引（Bottom clearance: 3.0 mm, Flow rate: 10 µL/s）</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table of all Opentrons items -->
+    <h3 style="font-size: 1rem; font-weight: 700; color: var(--slate-800); margin-bottom: 12px;">
+      📋 論文記載のOpentrons製品・消耗品スペック一覧 (Table S2抜粋)
+    </h3>
+    <div class="matrix-table-wrap" style="margin-bottom: 24px;">
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th>分類</th>
+            <th>製品名 (Hardware / Labware)</th>
+            <th>Opentrons型番 (ID)</th>
+            <th>容量 / 仕様</th>
+            <th>使用されたプロトコル & 用途</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style="background: #faf5ff;">
+            <td><span class="proto-badge p-purple">Module</span></td>
+            <td><strong>Thermocycler Module GEN1</strong></td>
+            <td><code class="code-mini">999-00001</code></td>
+            <td>4℃〜99℃, リッド最高105℃ (スロット7,8,10,11)</td>
+            <td><strong>P1, P5, P6</strong> (ヒートショック、PCR増幅、SDS加熱変性)</td>
+          </tr>
+          <tr style="background: #eff6ff;">
+            <td><span class="proto-badge p-blue">Robot</span></td>
+            <td><strong>OT-2 Liquid Handling Robot</strong></td>
+            <td><code class="code-mini">999-00111</code></td>
+            <td>11デッキスロット + ゴミ箱 (デュアルピペット)</td>
+            <td><strong>P1〜P7 全プロトコル</strong> の自動分注実行基盤</td>
+          </tr>
+          <tr>
+            <td><span class="proto-badge p-green">Pipette</span></td>
+            <td><strong>20 µL 8-Channel GEN2 Pipette</strong></td>
+            <td><code class="code-mini">999-00005</code></td>
+            <td>1〜20 µL (8連マルチチャンネル)</td>
+            <td><strong>P1, P2, P3, P4, P5, P6, P7</strong> (微量DNA添加、寒天スポッティング、コロニー採取、誘導剤添加)</td>
+          </tr>
+          <tr>
+            <td><span class="proto-badge p-green">Pipette</span></td>
+            <td><strong>300 µL 8-Channel GEN2 Pipette</strong></td>
+            <td><code class="code-mini">999-00006</code></td>
+            <td>20〜300 µL (8連マルチチャンネル)</td>
+            <td><strong>P1, P3, P4, P5, P6, P7</strong> (培地高速分注、ペレット上清低速除去、希釈液分配)</td>
+          </tr>
+          <tr>
+            <td><span class="proto-badge p-amber">Pipette</span></td>
+            <td><strong>20 µL Single-Channel GEN2 Pipette</strong></td>
+            <td><code class="code-mini">999-00002</code></td>
+            <td>1〜20 µL (シングルチャンネル)</td>
+            <td>単一ウェル微量操作、個別サンプリング検証（設定可能）</td>
+          </tr>
+          <tr>
+            <td><span class="proto-badge p-amber">Pipette</span></td>
+            <td><strong>300 µL Single-Channel GEN2 Pipette</strong></td>
+            <td><code class="code-mini">999-00003</code></td>
+            <td>20〜300 µL (シングルチャンネル)</td>
+            <td>単一ウェル大容量移送、試薬調製検証（設定可能）</td>
+          </tr>
+          <tr>
+            <td><span class="proto-badge p-teal">Tip</span></td>
+            <td><strong>Opentrons 20 µL Tips</strong></td>
+            <td><code class="code-mini">999-00007</code></td>
+            <td>20 µL フィルターチップラック (96本/ラック)</td>
+            <td>P1, P2, P3, P4, P5, P6, P7 の高精度ピペッティング</td>
+          </tr>
+          <tr>
+            <td><span class="proto-badge p-teal">Tip</span></td>
+            <td><strong>Opentrons 300 µL Tips</strong></td>
+            <td><code class="code-mini">999-00009</code></td>
+            <td>300 µL フィルターチップラック (96本/ラック)</td>
+            <td>P1, P3, P4, P5, P6, P7 の大容量ピペッティング</td>
+          </tr>
+          <tr>
+            <td><span class="proto-badge p-rose">Labware</span></td>
+            <td><strong>Opentrons 96 Well Plate 200 µL PCR Full Skirt</strong></td>
+            <td>Opentrons純正 / Armadillo</td>
+            <td>200 µL, V底, フルスカート</td>
+            <td>P1(形質転換プレート), P5(PCR反応プレート), P6(SDS熱変性プレート)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Expansion note for other Opentrons modules -->
+    <div class="callout callout-info">
+      <div class="callout-icon">💡</div>
+      <div>
+        <strong>下流精製・完全無人化に向けたOpentronsモジュール拡張性:</strong><br>
+        本論文では上記機器が使用されましたが、Opentronsエコシステムには以下のモジュールが提供されており、APEXプロトコルと容易に組み合わせ可能です：
+        <ul style="margin: 6px 0 0 16px; line-height: 1.5;">
+          <li><strong>Magnetic Module GEN2（磁気モジュール）:</strong> Protocol 6で抽出された可溶性ライセートに対し、Ni-NTA磁気ビーズを用いた完全自動His-tag精製（結合・洗浄・溶出）を追加する際に必須。</li>
+          <li><strong>Temperature Module GEN2（温度モジュール）:</strong> コンピテントセルプレートや試薬リザーバーを長時間4℃に低温保冷するオンデッキコールドブロックとして活用可能。</li>
+          <li><strong>Heater-Shaker Module（ヒーターシェーカーモジュール）:</strong> 将来的にディープウェル培養の振盪インキュベーション（37℃/20℃）をオンデッキで一体化する拡張モジュールとして最適。</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
 </div>
 
 </body>
